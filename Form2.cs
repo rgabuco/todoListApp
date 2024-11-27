@@ -15,6 +15,8 @@ namespace PROJ
         public string DueDate { get; set; } = string.Empty;
         public string PriorityLevel { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        private const string CategoryFilePath = "categories.txt";
+
 
         // Store the selected item for editing purposes
         private ListViewItem? _selectedItem;
@@ -61,11 +63,12 @@ namespace PROJ
 
         private void InitializeComboBox()
         {
+            var categories = LoadCategoriesFromFile();
+            if (categories.Any())
+            {
+                cmbCategory.Items.AddRange(categories.ToArray());
+            }
             
-            cmbCategory.Items.Add("Category"); 
-            cmbCategory.Items.Add("Option 1");
-            cmbCategory.Items.Add("Option 2");
-            cmbCategory.Items.Add("Option 3");
 
             cmbPriorityLevel.Items.Add("Priority Level"); 
             cmbPriorityLevel.Items.Add("Low");
@@ -77,8 +80,11 @@ namespace PROJ
             cmbStatus.Items.Add("In Progress");
             cmbStatus.Items.Add("Complete");
 
-           
-            cmbCategory.SelectedIndex = 0;
+
+            if (cmbCategory.Items.Count > 0)
+            {
+                cmbCategory.SelectedIndex = 0;
+            }
             cmbPriorityLevel.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
 
@@ -90,28 +96,19 @@ namespace PROJ
 
             Color customColor = ColorTranslator.FromHtml("#7974A8");
 
-            
+
             cmbCategory.DrawItem += (sender, e) =>
             {
-                
+                if (e.Index < 0) return;
                 if (e.Index == cmbCategory.SelectedIndex)
                 {
                     e.Graphics.FillRectangle(new SolidBrush(customColor), e.Bounds);
                     e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
                 }
-                else 
+                else
                 {
-                    // Check if the item is the placeholder
-                    if (cmbCategory.Items[e.Index].ToString() == "Category")
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds); 
-                        e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Gray, e.Bounds); 
-                    }
-                    else
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                        e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
-                    }
+                    e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
+                    e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
                 }
             };
 
@@ -228,6 +225,38 @@ namespace PROJ
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
             }
+        }
+        private void btnManageCategories_Click(object sender, EventArgs e)
+        {
+            List<string> currentCategories = cmbCategory.Items.Cast<string>().ToList();
+
+            using (var categoryForm = new CategoryForm(currentCategories))
+            {
+                if (categoryForm.ShowDialog() == DialogResult.OK)
+                {
+                    // Update ComboBox with the modified list of categories
+                    cmbCategory.Items.Clear();
+                    foreach (var category in categoryForm.Categories)
+                    {
+                        cmbCategory.Items.Add(category);
+                    }
+
+                    // Save updated categories to file
+                    SaveCategoriesToFile(categoryForm.Categories);
+                }
+            }
+        }
+        private List<string> LoadCategoriesFromFile()
+        {
+            if (File.Exists(CategoryFilePath))
+            {
+                return File.ReadAllLines(CategoryFilePath).ToList();
+            }
+            return new List<string>();
+        }
+        private void SaveCategoriesToFile(List<string> categories)
+        {
+            File.WriteAllLines(CategoryFilePath, categories);
         }
 
     }

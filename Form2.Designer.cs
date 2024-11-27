@@ -36,6 +36,7 @@
             txtDescription = new TextBox();
             btnCancel = new Button();
             cmbStatus = new ComboBox();
+            btnManageCategories = new Button();
             SuspendLayout();
             // 
             // txtTaskName
@@ -51,15 +52,15 @@
             cmbCategory.BackColor = Color.FromArgb(121, 116, 168);
             cmbCategory.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCategory.FormattingEnabled = true;
-            cmbCategory.Location = new Point(27, 87);
+            cmbCategory.Location = new Point(27, 93);
             cmbCategory.Name = "cmbCategory";
-            cmbCategory.Size = new Size(95, 23);
+            cmbCategory.Size = new Size(164, 23);
             cmbCategory.TabIndex = 1;
             // 
             // btnAdd
             // 
             btnAdd.BackColor = Color.FromArgb(121, 116, 168);
-            btnAdd.Location = new Point(30, 264);
+            btnAdd.Location = new Point(30, 313);
             btnAdd.Name = "btnAdd";
             btnAdd.Size = new Size(75, 23);
             btnAdd.TabIndex = 2;
@@ -69,9 +70,9 @@
             // 
             // dtpDueDate
             // 
-            dtpDueDate.Location = new Point(128, 87);
+            dtpDueDate.Location = new Point(27, 134);
             dtpDueDate.Name = "dtpDueDate";
-            dtpDueDate.Size = new Size(126, 23);
+            dtpDueDate.Size = new Size(227, 23);
             dtpDueDate.TabIndex = 3;
             // 
             // cmbPriorityLevel
@@ -79,14 +80,14 @@
             cmbPriorityLevel.BackColor = Color.FromArgb(121, 116, 168);
             cmbPriorityLevel.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbPriorityLevel.FormattingEnabled = true;
-            cmbPriorityLevel.Location = new Point(27, 125);
+            cmbPriorityLevel.Location = new Point(27, 174);
             cmbPriorityLevel.Name = "cmbPriorityLevel";
             cmbPriorityLevel.Size = new Size(108, 23);
             cmbPriorityLevel.TabIndex = 4;
             // 
             // txtDescription
             // 
-            txtDescription.Location = new Point(30, 160);
+            txtDescription.Location = new Point(30, 209);
             txtDescription.Multiline = true;
             txtDescription.Name = "txtDescription";
             txtDescription.PlaceholderText = "Description";
@@ -95,7 +96,7 @@
             // 
             // btnCancel
             // 
-            btnCancel.Location = new Point(179, 264);
+            btnCancel.Location = new Point(179, 313);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 23);
             btnCancel.TabIndex = 6;
@@ -108,16 +109,27 @@
             cmbStatus.BackColor = Color.FromArgb(121, 116, 168);
             cmbStatus.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbStatus.FormattingEnabled = true;
-            cmbStatus.Location = new Point(148, 125);
+            cmbStatus.Location = new Point(148, 174);
             cmbStatus.Name = "cmbStatus";
             cmbStatus.Size = new Size(106, 23);
             cmbStatus.TabIndex = 8;
+            // 
+            // btnManageCategories
+            // 
+            btnManageCategories.Location = new Point(200, 93);
+            btnManageCategories.Name = "btnManageCategories";
+            btnManageCategories.Size = new Size(54, 23);
+            btnManageCategories.TabIndex = 10;
+            btnManageCategories.Text = "+";
+            btnManageCategories.UseVisualStyleBackColor = true;
+            btnManageCategories.Click += btnManageCategories_Click;
             // 
             // Form2
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(283, 303);
+            ClientSize = new Size(299, 417);
+            Controls.Add(btnManageCategories);
             Controls.Add(cmbStatus);
             Controls.Add(btnCancel);
             Controls.Add(txtDescription);
@@ -143,5 +155,7 @@
         private TextBox txtDescription;
         private Button btnCancel;
         private ComboBox cmbStatus;
+        private TextBox textBox1;
+        private Button btnManageCategories;
     }
 }
