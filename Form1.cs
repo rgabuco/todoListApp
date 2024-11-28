@@ -10,7 +10,7 @@ namespace PROJ
     public partial class Form1 : Form
     {
         private DatabaseHelper dbHelper = new DatabaseHelper();
-        private List<string> categories = new List<string>(); // Store the category list
+        private List<string> categories = new List<string>(); // Store category list
 
         public Form1()
         {
@@ -28,7 +28,7 @@ namespace PROJ
 
             LoadCategories(); // Load categories from file
             UpdateCategoryDropdown(); // Populate the Category ComboBox
-            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; // Attach event handler
+            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; 
 
         }
         private void LoadCategories()
@@ -40,10 +40,10 @@ namespace PROJ
             }
             else
             {
-                categories = new List<string>(); // No default categories except "All Categories"
+                categories = new List<string>(); // No other default categories except "All Categories"
             }
 
-            // Ensure "All Categories" is always the first category
+            // Make sure "All Categories" is always the first category
             if (!categories.Contains("All Categories", StringComparer.OrdinalIgnoreCase))
             {
                 categories.Insert(0, "All Categories");
@@ -61,7 +61,7 @@ namespace PROJ
             }
 
             cmbCategory.Items.AddRange(categories.ToArray()); // Add categories to ComboBox
-            cmbCategory.SelectedIndex = 0; // Default to "All Categories"
+            cmbCategory.SelectedIndex = 0; // Default is "All Categories"
         }
 
 
@@ -210,7 +210,7 @@ namespace PROJ
         }
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            cmbCategory.SelectedIndex = 0; // Reset category filter to "All"
+            cmbCategory.SelectedIndex = 0; 
             RefreshListView(); // Reload all tasks
         }
 

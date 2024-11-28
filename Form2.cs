@@ -161,7 +161,7 @@ namespace PROJ
                 e.DrawBackground();
 
                 Color backgroundColor = ColorTranslator.FromHtml("#7974A8"); // Purple background
-                Color textColor = Color.White; // White text color for contrast
+                Color textColor = Color.White; 
 
                 if (e.State.HasFlag(DrawItemState.Selected))
                 {
@@ -169,7 +169,7 @@ namespace PROJ
                 }
                 else
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); // Default background
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); 
                 }
 
                 if (e.Index >= 0)
