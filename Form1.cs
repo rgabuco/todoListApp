@@ -10,6 +10,7 @@ namespace PROJ
     public partial class Form1 : Form
     {
         private DatabaseHelper dbHelper = new DatabaseHelper();
+        private List<string> categories = new List<string>(); // Store the category list
 
         public Form1()
         {
@@ -25,7 +26,44 @@ namespace PROJ
                 dbHelper.LoadTasks(listView1);
             }
 
+            LoadCategories(); // Load categories from file
+            UpdateCategoryDropdown(); // Populate the Category ComboBox
+            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; // Attach event handler
+
         }
+        private void LoadCategories()
+        {
+            string filePath = "categories.txt";
+            if (File.Exists(filePath))
+            {
+                categories = File.ReadAllLines(filePath).ToList(); // Load from file
+            }
+            else
+            {
+                categories = new List<string>(); // No default categories except "All Categories"
+            }
+
+            // Ensure "All Categories" is always the first category
+            if (!categories.Contains("All Categories", StringComparer.OrdinalIgnoreCase))
+            {
+                categories.Insert(0, "All Categories");
+            }
+        }
+
+        private void UpdateCategoryDropdown()
+        {
+            cmbCategory.Items.Clear();
+
+            // Add "All Categories" as the first option
+            if (!categories.Contains("All Categories", StringComparer.OrdinalIgnoreCase))
+            {
+                categories.Insert(0, "All Categories");
+            }
+
+            cmbCategory.Items.AddRange(categories.ToArray()); // Add categories to ComboBox
+            cmbCategory.SelectedIndex = 0; // Default to "All Categories"
+        }
+
 
         private void InitializeListView()
         {
@@ -137,12 +175,45 @@ namespace PROJ
                 }
             }
         }
+        private void cmbCategory_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            string selectedCategory = cmbCategory.SelectedItem.ToString();
+
+            listView1.Items.Clear(); // Clear the ListView
+
+            var tasks = dbHelper.GetTasks(); // Fetch tasks
+            var filteredTasks = tasks.Where(task =>
+                selectedCategory == "All" || task.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
+            );
+
+            foreach (var task in filteredTasks)
+            {
+                AddTaskToListView(task.TaskName, task.Category, task.DueDate.ToString("yyyy-MM-dd"), task.Description, task.PriorityLevel, task.Status, task.Id);
+            }
+        }
 
         public void RefreshListView()
         {
             listView1.Items.Clear();
             dbHelper.LoadTasks(listView1); // Reload tasks from the database
         }
+        private void btnManageCategories_Click(object sender, EventArgs e)
+        {
+            using (var categoryForm = new CategoryForm(categories))
+            {
+                if (categoryForm.ShowDialog() == DialogResult.OK)
+                {
+                    categories = categoryForm.Categories; // Get updated categories
+                    UpdateCategoryDropdown(); // Refresh ComboBox
+                }
+            }
+        }
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            cmbCategory.SelectedIndex = 0; // Reset category filter to "All"
+            RefreshListView(); // Reload all tasks
+        }
+
     }
 }
 

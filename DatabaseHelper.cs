@@ -143,6 +143,37 @@ namespace PROJ
                 }
             }
         }
+        public List<TaskModel> GetTasks()
+        {
+            var tasks = new List<TaskModel>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Tasks";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            tasks.Add(new TaskModel
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                TaskName = reader["TaskName"].ToString(),
+                                Category = reader["Category"].ToString(),
+                                Description = reader["Description"].ToString(),
+                                DueDate = Convert.ToDateTime(reader["DueDate"]),
+                                PriorityLevel = reader["PriorityLevel"].ToString(),
+                                Status = reader["Status"].ToString(),
+                            });
+                        }
+                    }
+                }
+            }
+
+            return tasks;
+        }
 
 
         public int GetLastInsertedTaskId()

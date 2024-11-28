@@ -38,6 +38,11 @@
             columnHeader7 = new ColumnHeader();
             columnHeader8 = new ColumnHeader();
             btnNewTask = new Button();
+            cmbCategory = new ComboBox();
+            cmbPriority = new ComboBox();
+            cmbStatus = new ComboBox();
+            textBox1 = new TextBox();
+            btnRefresh = new Button();
             SuspendLayout();
             // 
             // listView1
@@ -100,11 +105,57 @@
             btnNewTask.UseVisualStyleBackColor = false;
             btnNewTask.Click += btnNewTask_Click;
             // 
+            // cmbCategory
+            // 
+            cmbCategory.FormattingEnabled = true;
+            cmbCategory.Location = new Point(23, 87);
+            cmbCategory.Name = "cmbCategory";
+            cmbCategory.Size = new Size(121, 23);
+            cmbCategory.TabIndex = 2;
+            // 
+            // cmbPriority
+            // 
+            cmbPriority.FormattingEnabled = true;
+            cmbPriority.Location = new Point(557, 87);
+            cmbPriority.Name = "cmbPriority";
+            cmbPriority.Size = new Size(121, 23);
+            cmbPriority.TabIndex = 3;
+            // 
+            // cmbStatus
+            // 
+            cmbStatus.FormattingEnabled = true;
+            cmbStatus.Location = new Point(727, 87);
+            cmbStatus.Name = "cmbStatus";
+            cmbStatus.Size = new Size(121, 23);
+            cmbStatus.TabIndex = 4;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(213, 87);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(282, 23);
+            textBox1.TabIndex = 5;
+            // 
+            // btnRefresh
+            // 
+            btnRefresh.Location = new Point(943, 89);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(75, 23);
+            btnRefresh.TabIndex = 6;
+            btnRefresh.Text = "Refresh";
+            btnRefresh.UseVisualStyleBackColor = true;
+            btnRefresh.Click += btnRefresh_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1086, 446);
+            Controls.Add(btnRefresh);
+            Controls.Add(textBox1);
+            Controls.Add(cmbStatus);
+            Controls.Add(cmbPriority);
+            Controls.Add(cmbCategory);
             Controls.Add(btnNewTask);
             Controls.Add(listView1);
             Name = "Form1";
@@ -112,6 +163,7 @@
             Text = "Welcome To Task Management";
             Load += Form1_Load_1;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -126,5 +178,10 @@
         private ColumnHeader columnHeader6;
         private ColumnHeader columnHeader7;
         private ColumnHeader columnHeader8;
+        private ComboBox cmbCategory;
+        private ComboBox cmbPriority;
+        private ComboBox cmbStatus;
+        private TextBox textBox1;
+        private Button btnRefresh;
     }
 }
