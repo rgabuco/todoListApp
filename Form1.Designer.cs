@@ -43,12 +43,13 @@
             cmbStatus = new ComboBox();
             textBox1 = new TextBox();
             btnRefresh = new Button();
+            label1 = new Label();
             SuspendLayout();
             // 
             // listView1
             // 
             listView1.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5, columnHeader6, columnHeader7, columnHeader8 });
-            listView1.Location = new Point(12, 133);
+            listView1.Location = new Point(12, 260);
             listView1.Name = "listView1";
             listView1.Size = new Size(1053, 283);
             listView1.TabIndex = 0;
@@ -97,7 +98,7 @@
             // btnNewTask
             // 
             btnNewTask.BackColor = Color.FromArgb(121, 116, 168);
-            btnNewTask.Location = new Point(12, 24);
+            btnNewTask.Location = new Point(12, 161);
             btnNewTask.Name = "btnNewTask";
             btnNewTask.Size = new Size(75, 23);
             btnNewTask.TabIndex = 1;
@@ -108,7 +109,7 @@
             // cmbCategory
             // 
             cmbCategory.FormattingEnabled = true;
-            cmbCategory.Location = new Point(23, 87);
+            cmbCategory.Location = new Point(23, 214);
             cmbCategory.Name = "cmbCategory";
             cmbCategory.Size = new Size(121, 23);
             cmbCategory.TabIndex = 2;
@@ -116,7 +117,7 @@
             // cmbPriority
             // 
             cmbPriority.FormattingEnabled = true;
-            cmbPriority.Location = new Point(557, 87);
+            cmbPriority.Location = new Point(557, 214);
             cmbPriority.Name = "cmbPriority";
             cmbPriority.Size = new Size(121, 23);
             cmbPriority.TabIndex = 3;
@@ -124,21 +125,21 @@
             // cmbStatus
             // 
             cmbStatus.FormattingEnabled = true;
-            cmbStatus.Location = new Point(727, 87);
+            cmbStatus.Location = new Point(727, 214);
             cmbStatus.Name = "cmbStatus";
             cmbStatus.Size = new Size(121, 23);
             cmbStatus.TabIndex = 4;
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(213, 87);
+            textBox1.Location = new Point(213, 214);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(282, 23);
             textBox1.TabIndex = 5;
             // 
             // btnRefresh
             // 
-            btnRefresh.Location = new Point(943, 89);
+            btnRefresh.Location = new Point(943, 216);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(75, 23);
             btnRefresh.TabIndex = 6;
@@ -146,11 +147,22 @@
             btnRefresh.UseVisualStyleBackColor = true;
             btnRefresh.Click += btnRefresh_Click;
             // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            label1.Location = new Point(904, 18);
+            label1.Name = "label1";
+            label1.Size = new Size(143, 15);
+            label1.TabIndex = 7;
+            label1.Text = "3 days Weather Forecast";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1086, 446);
+            ClientSize = new Size(1093, 564);
+            Controls.Add(label1);
             Controls.Add(btnRefresh);
             Controls.Add(textBox1);
             Controls.Add(cmbStatus);
@@ -183,5 +195,6 @@
         private ComboBox cmbStatus;
         private TextBox textBox1;
         private Button btnRefresh;
+        private Label label1;
     }
 }
