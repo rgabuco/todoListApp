@@ -20,23 +20,21 @@ namespace PROJ
 
         private void Form1_Load_1(object? sender, EventArgs e)
         {
-            // Load tasks from the database into the ListView
-            if (listView1 != null)
-            {
-                dbHelper.LoadTasks(listView1);
-            }
+           
+            dbHelper.LoadTasks(listView1);
 
             LoadCategories(); // Load categories from file
-            UpdateCategoryDropdown(); // Populate the Category ComboBox
-            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; 
+            UpdateCategoryDropdown(); // to update the dropdown
+            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; //handle categoryfilter changes
 
         }
         private void LoadCategories()
         {
-            string filePath = "categories.txt";
+            string filePath = "categories.txt";//where we save the categories
             if (File.Exists(filePath))
             {
-                categories = File.ReadAllLines(filePath).ToList(); // Load from file
+                // Read categories from the file and add them to the list
+                categories = File.ReadAllLines(filePath).ToList(); 
             }
             else
             {
@@ -49,28 +47,53 @@ namespace PROJ
                 categories.Insert(0, "All Categories");
             }
         }
-
-        private void UpdateCategoryDropdown()
+        public void UpdateCategoryDropdown()
         {
-            cmbCategory.Items.Clear();
-
-            // Add "All Categories" as the first option
-            if (!categories.Contains("All Categories", StringComparer.OrdinalIgnoreCase))
+            try
             {
-                categories.Insert(0, "All Categories");
-            }
+                // Get categories from tasks in the database
+                var taskCategories = dbHelper.GetDistinctCategoriesFromTasks();
 
-            cmbCategory.Items.AddRange(categories.ToArray()); // Add categories to ComboBox
-            cmbCategory.SelectedIndex = 0; // Default is "All Categories"
+                // Get categories from the file
+                string filePath = "categories.txt";
+                var fileCategories = File.Exists(filePath)
+                    ? File.ReadAllLines(filePath).ToList()
+                    : new List<string>();
+
+                // Combine task categories and file categories
+                var allCategories = new HashSet<string>(taskCategories);
+                foreach (var category in fileCategories)
+                {
+                    allCategories.Add(category);
+                }
+
+                // Clear the dropdown and add combined categories
+                cmbCategory.BeginInvoke((Action)(() =>
+                {
+                    cmbCategory.Items.Clear();
+                    cmbCategory.Items.Add("All Categories");
+                    cmbCategory.Items.AddRange(allCategories.ToArray());
+                    cmbCategory.SelectedIndex = 0; // start with "All Categories"
+                }));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error updating category dropdown: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+
 
 
         private void InitializeListView()
         {
+            // Set up the task list display
             listView1.View = View.Details;
             listView1.FullRowSelect = true;
             listView1.GridLines = true;
             listView1.OwnerDraw = true;
+
+            // Add columns to show task details
 
             listView1.Columns.Clear();
 
@@ -81,8 +104,8 @@ namespace PROJ
             listView1.Columns.Add("Priority Level", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Status", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Actions", 100, HorizontalAlignment.Left);
-            
 
+            // Add custom drawing for rows and headers
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawItem += listView1_DrawItem;
             listView1.DrawSubItem += listView1_DrawSubItem;
@@ -121,6 +144,7 @@ namespace PROJ
 
         private void btnNewTask_Click(object? sender, EventArgs e)
         {
+            // Open the form to add a new task
             Form2 F2 = new Form2();
             F2.Owner = this;
             F2.ShowDialog();
@@ -130,7 +154,7 @@ namespace PROJ
         {
             ListViewItem item = new ListViewItem(taskName)
             {
-                Tag = taskId // Store the task ID in the Tag property
+                Tag = taskId // Store the task ID for later use
             };
             item.SubItems.Add(category);
             item.SubItems.Add(description);
@@ -145,7 +169,7 @@ namespace PROJ
 
         private void listView1_MouseClick(object? sender, MouseEventArgs e)
         {
-
+            // Manage clicks on tasks to edit them
             ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
             if (clickedItem != null)
             {
@@ -155,35 +179,50 @@ namespace PROJ
 
         private void EditTask(ListViewItem item)
         {
-            Form2 form2 = new Form2(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text,
-                                     item.SubItems[3].Text, item.SubItems[4].Text, item.SubItems[5].Text, item);
+            // Open the edit form with task details
+            Form2 form2 = new Form2(
+                item.SubItems[0].Text,
+                item.SubItems[1].Text,
+                item.SubItems[2].Text,
+                item.SubItems[3].Text,
+                item.SubItems[4].Text,
+                item.SubItems[5].Text,
+                item);
 
             DialogResult result = form2.ShowDialog();
 
             if (result == DialogResult.OK)
             {
+                // Update the list if some changes were made
                 RefreshListView();
+                UpdateCategoryDropdown();
             }
-            else if (result == DialogResult.Cancel)
+            else if (result == DialogResult.Cancel && form2.IsDeleteAction)
             {
-                if (form2.IsDeleteAction)
-                {
-                    listView1.Items.Remove(item);
-
-                    int taskId = (int)item.Tag;
-                    dbHelper.DeleteTask(taskId); // Call DeleteTask method in DatabaseHelper
-                }
+                // Remove the task if it was deleted
+                listView1.Items.Remove(item);
+                dbHelper.DeleteTask((int)item.Tag);
+                RefreshListView();
+                UpdateCategoryDropdown();
             }
         }
+
         private void cmbCategory_SelectedIndexChanged(object? sender, EventArgs e)
         {
+            //manages category filtering
+            if (cmbCategory.SelectedItem == null)
+            {
+                return;
+            }
+
             string selectedCategory = cmbCategory.SelectedItem.ToString();
 
-            listView1.Items.Clear(); // Clear the ListView
+            listView1.Items.Clear();
 
-            var tasks = dbHelper.GetTasks(); // Fetch tasks
+            var tasks = dbHelper.GetTasks();
             var filteredTasks = tasks.Where(task =>
-                selectedCategory == "All" || task.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
+                selectedCategory == "All Categories" ||
+                task.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
             );
 
             foreach (var task in filteredTasks)
@@ -192,19 +231,24 @@ namespace PROJ
             }
         }
 
+
         public void RefreshListView()
         {
+            //reloads the tasks from the database
             listView1.Items.Clear();
-            dbHelper.LoadTasks(listView1); // Reload tasks from the database
+            dbHelper.LoadTasks(listView1); 
+            listView1.Refresh(); 
+
         }
         private void btnManageCategories_Click(object sender, EventArgs e)
         {
+            // Open the category form
             using (var categoryForm = new CategoryForm(categories))
             {
                 if (categoryForm.ShowDialog() == DialogResult.OK)
                 {
                     categories = categoryForm.Categories; // Get updated categories
-                    UpdateCategoryDropdown(); // Refresh ComboBox
+                    UpdateCategoryDropdown(); 
                 }
             }
         }

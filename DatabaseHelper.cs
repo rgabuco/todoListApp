@@ -82,29 +82,17 @@ namespace PROJ
                 {
                     connection.Open();
 
-                    // Start a transaction to ensure the action is done atomically
-                    SqlTransaction transaction = connection.BeginTransaction();
-
-                    try
+                    string deleteQuery = "DELETE FROM Tasks WHERE Id = @taskId";
+                    using (SqlCommand command = new SqlCommand(deleteQuery, connection))
                     {
-                        // Delete the specific task by its Id
-                        string deleteQuery = "DELETE FROM Tasks WHERE Id = @taskId";
-                        using (SqlCommand deleteCommand = new SqlCommand(deleteQuery, connection, transaction))
-                        {
-                            deleteCommand.Parameters.AddWithValue("@taskId", taskId);
-                            deleteCommand.ExecuteNonQuery();
-                        }
-
-                        // Commit the transaction if everything is successful
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        // Rollback if there is any error
-                        transaction.Rollback();
-                        MessageBox.Show($"Error deleting task: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        command.Parameters.AddWithValue("@taskId", taskId);
+                        command.ExecuteNonQuery();
                     }
                 }
+
+                // Refresh the category list on the main screen
+                var parentForm = Application.OpenForms.OfType<Form1>().FirstOrDefault();
+                parentForm?.UpdateCategoryDropdown();
             }
             catch (Exception ex)
             {
@@ -175,6 +163,30 @@ namespace PROJ
             return tasks;
         }
 
+        public List<string> GetDistinctCategoriesFromTasks()
+        {
+            var categories = new List<string>();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT DISTINCT Category FROM Tasks WHERE Category IS NOT NULL";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string category = reader["Category"].ToString();
+                            if (!string.IsNullOrWhiteSpace(category))
+                            {
+                                categories.Add(category);
+                            }
+                        }
+                    }
+                }
+            }
+            return categories;
+        }
 
         public int GetLastInsertedTaskId()
         {

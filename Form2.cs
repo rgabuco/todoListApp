@@ -29,7 +29,7 @@ namespace PROJ
             IsEditMode = false;
         }
 
-        // Constructor for editing an existing task
+        // Constructor for editing a task
         public Form2(string taskName, string category, string description, string dueDate, string priorityLevel, string status, ListViewItem? selectedItem = null)
         {
             InitializeComponent();
@@ -79,17 +79,15 @@ namespace PROJ
             cmbPriorityLevel.Text = "Priority Level";
             cmbStatus.Text = "Status";
 
-
+            // These events handle clearing placeholder text
             cmbPriorityLevel.DropDown += CmbPriorityLevel_DropDown;
             cmbStatus.DropDown += CmbStatus_DropDown;
-
-
-
             cmbPriorityLevel.Leave += CmbPriorityLevel_Leave;
             cmbStatus.Leave += CmbStatus_Leave;
             cmbPriorityLevel.DropDown += CmbPriorityLevel_DropDown;
             cmbPriorityLevel.Leave += CmbPriorityLevel_Leave;
 
+            // These customize the look of the dropdowns
             cmbCategory.DrawMode = DrawMode.OwnerDrawFixed;
             cmbPriorityLevel.DrawMode = DrawMode.OwnerDrawFixed;
             cmbStatus.DrawMode = DrawMode.OwnerDrawFixed;
@@ -184,15 +182,18 @@ namespace PROJ
                 e.DrawFocusRectangle();
             };
         }
-            private void btnAdd_Click(object? sender, EventArgs e)
-        {
+        private void btnAdd_Click(object? sender, EventArgs e)
+        {            
+            // Get all the info from the input fields
+
             string taskName = txtTaskName.Text.Trim();
             string category = cmbCategory.SelectedItem?.ToString();
             string description = txtDescription.Text.Trim();
             DateTime dueDate = dtpDueDate.Value;
             string priorityLevel = cmbPriorityLevel.SelectedItem?.ToString();
             string status = cmbStatus.SelectedItem?.ToString();
-
+            
+            // Check if the inputs are empty
             if (string.IsNullOrWhiteSpace(taskName) || string.IsNullOrWhiteSpace(category) ||
                 string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(priorityLevel) ||
                 string.IsNullOrWhiteSpace(status))
@@ -201,14 +202,22 @@ namespace PROJ
                 return;
             }
 
+            if (cmbCategory.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a category.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
+                var parentForm = this.Owner as Form1;
+
                 if (IsEditMode && _selectedItem != null)
                 {
-                    // Update the task in the database first
+                    // Update the task in the database
                     dbHelper.UpdateTask((int)_selectedItem.Tag, taskName, category, description, dueDate, priorityLevel, status);
 
-                    // After updating the database, update the ListView item
+                    // Update the ListView with the new details
                     _selectedItem.SubItems[0].Text = taskName;
                     _selectedItem.SubItems[1].Text = category;
                     _selectedItem.SubItems[2].Text = description;
@@ -216,15 +225,30 @@ namespace PROJ
                     _selectedItem.SubItems[4].Text = priorityLevel;
                     _selectedItem.SubItems[5].Text = status;
 
-                    // Refresh the ListView in Form1 to reflect changes immediately
-                    (this.Owner as Form1)?.RefreshListView();
+                    // Refresh the main form
+                    parentForm?.RefreshListView();
+
+                    
+                    parentForm?.UpdateCategoryDropdown();
                 }
                 else
                 {
+                    // Add a new task to the database
                     dbHelper.AddTask(taskName, category, description, dueDate, priorityLevel, status);
 
-                    // Add the new task to the ListView in Form1
-                    (this.Owner as Form1)?.AddTaskToListView(taskName, category, dueDate.ToString("yyyy-MM-dd"), description, priorityLevel, status, dbHelper.GetLastInsertedTaskId());
+                    // Add the new task to the ListView
+                    parentForm?.AddTaskToListView(
+                        taskName,
+                        category,
+                        dueDate.ToString("yyyy-MM-dd"),
+                        description,
+                        priorityLevel,
+                        status,
+                        dbHelper.GetLastInsertedTaskId()
+                    );
+
+                    // Refresh the categories
+                    parentForm?.UpdateCategoryDropdown();
                 }
 
                 this.DialogResult = DialogResult.OK;
@@ -235,6 +259,7 @@ namespace PROJ
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         private void btnCancel_Click(object? sender, EventArgs e)
         {
@@ -255,6 +280,7 @@ namespace PROJ
         }
         private void btnManageCategories_Click(object sender, EventArgs e)
         {
+            // Open the category management form
             List<string> currentCategories = cmbCategory.Items.Cast<string>().ToList();
 
             using (var categoryForm = new CategoryForm(currentCategories))
@@ -289,7 +315,7 @@ namespace PROJ
         {
             if (cmbPriorityLevel.Text == "Priority Level")
             {
-                cmbPriorityLevel.Text = ""; // Clear placeholder on dropdown
+                cmbPriorityLevel.Text = ""; // Clear placeholder when dropdown is clicked
             }
         }
 
@@ -297,7 +323,7 @@ namespace PROJ
         {
             if (cmbStatus.Text == "Status")
             {
-                cmbStatus.Text = ""; // Clear placeholder on dropdown
+                cmbStatus.Text = ""; // Clear placeholder when dropdown is clicked
             }
         }
 
@@ -320,7 +346,7 @@ namespace PROJ
         {
             if (cmbCategory.Text == "Categories")
             {
-                cmbCategory.Text = ""; // Clear placeholder on dropdown
+                cmbCategory.Text = ""; // Clear placeholder when dropdown is clicked
             }
         }
 
