@@ -68,96 +68,123 @@ namespace PROJ
             {
                 cmbCategory.Items.AddRange(categories.ToArray());
             }
-            
-
-            cmbPriorityLevel.Items.Add("Priority Level"); 
-            cmbPriorityLevel.Items.Add("Low");
-            cmbPriorityLevel.Items.Add("Medium");
-            cmbPriorityLevel.Items.Add("High");
-
-            cmbStatus.Items.Add("Status"); 
-            cmbStatus.Items.Add("Starting");
-            cmbStatus.Items.Add("In Progress");
-            cmbStatus.Items.Add("Complete");
 
 
-            if (cmbCategory.Items.Count > 0)
-            {
-                cmbCategory.SelectedIndex = 0;
-            }
-            cmbPriorityLevel.SelectedIndex = 0;
-            cmbStatus.SelectedIndex = 0;
+            // Add items for Priority Level and Status
+            cmbPriorityLevel.Items.AddRange(new string[] { "Low", "Medium", "High" });
+            cmbStatus.Items.AddRange(new string[] { "Starting", "In Progress", "Complete" });
 
-            
+            // Set placeholder text
+            cmbCategory.Text = "Categories";
+            cmbPriorityLevel.Text = "Priority Level";
+            cmbStatus.Text = "Status";
+
+
+            cmbPriorityLevel.DropDown += CmbPriorityLevel_DropDown;
+            cmbStatus.DropDown += CmbStatus_DropDown;
+
+
+
+            cmbPriorityLevel.Leave += CmbPriorityLevel_Leave;
+            cmbStatus.Leave += CmbStatus_Leave;
+            cmbPriorityLevel.DropDown += CmbPriorityLevel_DropDown;
+            cmbPriorityLevel.Leave += CmbPriorityLevel_Leave;
+
             cmbCategory.DrawMode = DrawMode.OwnerDrawFixed;
             cmbPriorityLevel.DrawMode = DrawMode.OwnerDrawFixed;
             cmbStatus.DrawMode = DrawMode.OwnerDrawFixed;
-
 
             Color customColor = ColorTranslator.FromHtml("#7974A8");
 
 
             cmbCategory.DrawItem += (sender, e) =>
             {
-                if (e.Index < 0) return;
-                if (e.Index == cmbCategory.SelectedIndex)
+                e.DrawBackground();
+
+                Color backgroundColor = ColorTranslator.FromHtml("#7974A8"); // Purple background
+                Color textColor = Color.White; // White text color for contrast
+
+                if (e.State.HasFlag(DrawItemState.Selected))
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(customColor), e.Bounds);
-                    e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
+                    // Apply purple background even when the item is selected
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds);
                 }
                 else
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                    e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); // Default background
                 }
+
+                if (e.Index >= 0)
+                {
+                    // Draw actual item text
+                    e.Graphics.DrawString(cmbCategory.Items[e.Index].ToString(), e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+                else
+                {
+                    // Draw placeholder text
+                    e.Graphics.DrawString("Categories", e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+
+                e.DrawFocusRectangle();
             };
 
             cmbPriorityLevel.DrawItem += (sender, e) =>
             {
-                if (e.Index == cmbPriorityLevel.SelectedIndex)
+                e.DrawBackground();
+
+                Color backgroundColor = ColorTranslator.FromHtml("#7974A8"); // Purple background
+                Color textColor = Color.White; // White text color for contrast
+
+                if (e.State.HasFlag(DrawItemState.Selected))
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(customColor), e.Bounds);
-                    e.Graphics.DrawString(cmbPriorityLevel.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds);
                 }
                 else
                 {
-                    if (cmbPriorityLevel.Items[e.Index].ToString() == "Priority Level")
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                        e.Graphics.DrawString(cmbPriorityLevel.Items[e.Index].ToString(), e.Font, Brushes.Gray, e.Bounds);
-                    }
-                    else
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                        e.Graphics.DrawString(cmbPriorityLevel.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
-                    }
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); // Default background
                 }
+
+                if (e.Index >= 0)
+                {
+                    e.Graphics.DrawString(cmbPriorityLevel.Items[e.Index].ToString(), e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+                else
+                {
+                    e.Graphics.DrawString("Priority Level", e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+
+                e.DrawFocusRectangle();
             };
 
             cmbStatus.DrawItem += (sender, e) =>
             {
-                if (e.Index == cmbStatus.SelectedIndex)
+                e.DrawBackground();
+
+                Color backgroundColor = ColorTranslator.FromHtml("#7974A8"); // Purple background
+                Color textColor = Color.White; // White text color for contrast
+
+                if (e.State.HasFlag(DrawItemState.Selected))
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(customColor), e.Bounds);
-                    e.Graphics.DrawString(cmbStatus.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds);
                 }
                 else
                 {
-                    if (cmbStatus.Items[e.Index].ToString() == "Status")
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                        e.Graphics.DrawString(cmbStatus.Items[e.Index].ToString(), e.Font, Brushes.Gray, e.Bounds);
-                    }
-                    else
-                    {
-                        e.Graphics.FillRectangle(new SolidBrush(Color.White), e.Bounds);
-                        e.Graphics.DrawString(cmbStatus.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds);
-                    }
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); // Default background
                 }
+
+                if (e.Index >= 0)
+                {
+                    e.Graphics.DrawString(cmbStatus.Items[e.Index].ToString(), e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+                else
+                {
+                    e.Graphics.DrawString("Status", e.Font, new SolidBrush(textColor), e.Bounds);
+                }
+
+                e.DrawFocusRectangle();
             };
         }
-
-        private void btnAdd_Click(object? sender, EventArgs e)
+            private void btnAdd_Click(object? sender, EventArgs e)
         {
             string taskName = txtTaskName.Text.Trim();
             string category = cmbCategory.SelectedItem?.ToString();
@@ -258,6 +285,54 @@ namespace PROJ
         {
             File.WriteAllLines(CategoryFilePath, categories);
         }
+        private void CmbPriorityLevel_DropDown(object sender, EventArgs e)
+        {
+            if (cmbPriorityLevel.Text == "Priority Level")
+            {
+                cmbPriorityLevel.Text = ""; // Clear placeholder on dropdown
+            }
+        }
+
+        private void CmbStatus_DropDown(object sender, EventArgs e)
+        {
+            if (cmbStatus.Text == "Status")
+            {
+                cmbStatus.Text = ""; // Clear placeholder on dropdown
+            }
+        }
+
+        private void CmbPriorityLevel_Leave(object sender, EventArgs e)
+        {
+            if (cmbPriorityLevel.SelectedIndex == -1 || string.IsNullOrWhiteSpace(cmbPriorityLevel.Text))
+            {
+                cmbPriorityLevel.Text = "Priority Level"; // Reset placeholder if nothing is selected
+            }
+        }
+
+        private void CmbStatus_Leave(object sender, EventArgs e)
+        {
+            if (cmbStatus.SelectedIndex == -1 || string.IsNullOrWhiteSpace(cmbStatus.Text))
+            {
+                cmbStatus.Text = "Status"; // Reset placeholder if nothing is selected
+            }
+        }
+        private void CmbCategory_DropDown(object sender, EventArgs e)
+        {
+            if (cmbCategory.Text == "Categories")
+            {
+                cmbCategory.Text = ""; // Clear placeholder on dropdown
+            }
+        }
+
+        private void CmbCategory_Leave(object sender, EventArgs e)
+        {
+            if (cmbCategory.SelectedIndex == -1 || string.IsNullOrWhiteSpace(cmbCategory.Text))
+            {
+                cmbCategory.Text = "Categories"; // Reset placeholder if nothing is selected
+            }
+        }
+
+
 
     }
 }
