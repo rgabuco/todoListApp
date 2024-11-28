@@ -24,6 +24,7 @@ namespace PROJ
             {
                 dbHelper.LoadTasks(listView1);
             }
+
         }
 
         private void InitializeListView()
@@ -35,26 +36,14 @@ namespace PROJ
 
             listView1.Columns.Clear();
 
-            listView1.Columns.Add("Task Name");
-            listView1.Columns.Add("Category");
-            listView1.Columns.Add("Description");
-            listView1.Columns.Add("Due Date");
-            listView1.Columns.Add("Priority Level");
-            listView1.Columns.Add("Status");
-            listView1.Columns.Add("Actions");
-
-            int totalWidth = listView1.ClientSize.Width;
-            int columnCount = listView1.Columns.Count;
-
-            int taskNameColumnWidth = totalWidth * 27 / 100;
-            int remainingWidth = totalWidth - taskNameColumnWidth;
-            int evenColumnWidth = remainingWidth / (columnCount - 1);
-            listView1.Columns[0].Width = taskNameColumnWidth;
-
-            for (int i = 1; i < listView1.Columns.Count; i++)
-            {
-                listView1.Columns[i].Width = evenColumnWidth;
-            }
+            listView1.Columns.Add("Task Name", 150, HorizontalAlignment.Left);
+            listView1.Columns.Add("Category", 100, HorizontalAlignment.Left);
+            listView1.Columns.Add("Description", 400, HorizontalAlignment.Left);
+            listView1.Columns.Add("Due Date", 100, HorizontalAlignment.Left);
+            listView1.Columns.Add("Priority Level", 100, HorizontalAlignment.Left);
+            listView1.Columns.Add("Status", 100, HorizontalAlignment.Left);
+            listView1.Columns.Add("Actions", 100, HorizontalAlignment.Left);
+            
 
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawItem += listView1_DrawItem;
@@ -73,8 +62,9 @@ namespace PROJ
             }
 
             TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, Color.Black,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-        }
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        
+    }
 
         private void listView1_DrawItem(object? sender, DrawListViewItemEventArgs e)
         {
