@@ -43,7 +43,7 @@
             btnAddCategory.TabIndex = 0;
             btnAddCategory.Text = "Add";
             btnAddCategory.UseVisualStyleBackColor = true;
-            btnAddCategory.Click += new EventHandler(btnAddCategory_Click);
+            btnAddCategory.Click += btnAddCategory_Click;
             // 
             // btnDeleteCategory
             // 
@@ -53,7 +53,7 @@
             btnDeleteCategory.TabIndex = 1;
             btnDeleteCategory.Text = "Delete";
             btnDeleteCategory.UseVisualStyleBackColor = true;
-            btnDeleteCategory.Click += new EventHandler(btnDeleteCategory_Click); 
+            btnDeleteCategory.Click += btnDeleteCategory_Click;
             // 
             // txtNewCategory
             // 
@@ -79,9 +79,9 @@
             btnSave.TabIndex = 4;
             btnSave.Text = "Save";
             btnSave.UseVisualStyleBackColor = true;
-            btnSave.Click += new EventHandler(btnSave_Click);
+            btnSave.Click += btnSave_Click;
             // 
-            // CatgeroyForm
+            // CategoryForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -91,8 +91,10 @@
             Controls.Add(txtNewCategory);
             Controls.Add(btnDeleteCategory);
             Controls.Add(btnAddCategory);
-            Name = "CatgeroyForm";
+            Name = "CategoryForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "CatgeroyForm";
+            TopMost = true;
             ResumeLayout(false);
             PerformLayout();
         }

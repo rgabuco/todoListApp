@@ -236,7 +236,7 @@ namespace PROJ
 
         private void Form1_Load_1(object? sender, EventArgs e)
         {
-           
+
             dbHelper.LoadTasks(listView1);
 
             LoadCategories(); // Load categories from file
@@ -250,7 +250,7 @@ namespace PROJ
             if (File.Exists(filePath))
             {
                 // Read categories from the file and add them to the list
-                categories = File.ReadAllLines(filePath).ToList(); 
+                categories = File.ReadAllLines(filePath).ToList();
             }
             else
             {
@@ -340,8 +340,8 @@ namespace PROJ
 
             TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, Color.Black,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
-        
-    }
+
+        }
 
         private void listView1_DrawItem(object? sender, DrawListViewItemEventArgs e)
         {
@@ -452,8 +452,8 @@ namespace PROJ
         {
             //reloads the tasks from the database
             listView1.Items.Clear();
-            dbHelper.LoadTasks(listView1); 
-            listView1.Refresh(); 
+            dbHelper.LoadTasks(listView1);
+            listView1.Refresh();
 
         }
         private void btnManageCategories_Click(object sender, EventArgs e)
@@ -464,16 +464,65 @@ namespace PROJ
                 if (categoryForm.ShowDialog() == DialogResult.OK)
                 {
                     categories = categoryForm.Categories; // Get updated categories
-                    UpdateCategoryDropdown(); 
+                    UpdateCategoryDropdown();
                 }
             }
         }
         private void btnRefresh_Click(object sender, EventArgs e)
         {
-            cmbCategory.SelectedIndex = 0; 
+            cmbCategory.SelectedIndex = 0;
             RefreshListView(); // Reload all tasks
         }
 
+        private void BtnExpotToCsv_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+                saveFileDialog.Title = "Save as CSV";
+                saveFileDialog.FileName = "tasks.csv";
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
+                        {
+                            // Write the header line
+                            for (int i = 0; i < listView1.Columns.Count; i++)
+                            {
+                                writer.Write(listView1.Columns[i].Text);
+                                if (i < listView1.Columns.Count - 1)
+                                {
+                                    writer.Write(",");
+                                }
+                            }
+                            writer.WriteLine();
+
+                            // Write the data lines
+                            foreach (ListViewItem item in listView1.Items)
+                            {
+                                for (int i = 0; i < item.SubItems.Count; i++)
+                                {
+                                    writer.Write(item.SubItems[i].Text);
+                                    if (i < item.SubItems.Count - 1)
+                                    {
+                                        writer.Write(",");
+                                    }
+                                }
+                                writer.WriteLine();
+                            }
+                        }
+
+                        MessageBox.Show("Save successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error saving file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
     }
 }
 

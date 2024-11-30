@@ -44,6 +44,7 @@
             textBox1 = new TextBox();
             btnRefresh = new Button();
             label1 = new Label();
+            btnExpotToCsv = new Button();
             SuspendLayout();
             // 
             // listView1
@@ -98,9 +99,10 @@
             // btnNewTask
             // 
             btnNewTask.BackColor = Color.FromArgb(121, 116, 168);
-            btnNewTask.Location = new Point(12, 161);
+            btnNewTask.Font = new Font("Segoe UI", 10F);
+            btnNewTask.Location = new Point(12, 163);
             btnNewTask.Name = "btnNewTask";
-            btnNewTask.Size = new Size(75, 23);
+            btnNewTask.Size = new Size(89, 32);
             btnNewTask.TabIndex = 1;
             btnNewTask.Text = "New Task";
             btnNewTask.UseVisualStyleBackColor = false;
@@ -157,11 +159,23 @@
             label1.TabIndex = 7;
             label1.Text = "3 days Weather Forecast";
             // 
+            // btnExpotToCsv
+            // 
+            btnExpotToCsv.Font = new Font("Segoe UI", 9F);
+            btnExpotToCsv.Location = new Point(117, 163);
+            btnExpotToCsv.Name = "btnExpotToCsv";
+            btnExpotToCsv.Size = new Size(97, 32);
+            btnExpotToCsv.TabIndex = 8;
+            btnExpotToCsv.Text = "Export to CSV";
+            btnExpotToCsv.UseVisualStyleBackColor = true;
+            btnExpotToCsv.Click += BtnExpotToCsv_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1093, 564);
+            Controls.Add(btnExpotToCsv);
             Controls.Add(label1);
             Controls.Add(btnRefresh);
             Controls.Add(textBox1);
@@ -196,5 +210,6 @@
         private TextBox textBox1;
         private Button btnRefresh;
         private Label label1;
+        private Button btnExpotToCsv;
     }
 }
