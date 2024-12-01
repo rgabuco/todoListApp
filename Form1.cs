@@ -153,7 +153,7 @@ namespace PROJ
                 string date = DateTime.Parse((string)day["date"]).ToString("ddd");
                 string icon = (string)day["day"]["condition"]["icon"];
                 string description = (string)day["day"]["condition"]["text"];
-                string temp = ((double)day["day"]["avgtemp_c"]).ToString("0.0") + "°C";
+                string temp = ((double)day["day"]["avgtemp_c"]).ToString("0.0") + "Â°C";
 
                 Panel dayPanel = new Panel
                 {
@@ -313,13 +313,12 @@ namespace PROJ
 
             listView1.Columns.Clear();
 
-            listView1.Columns.Add("Task Name", 150, HorizontalAlignment.Left);
+            listView1.Columns.Add("Task Name", 200, HorizontalAlignment.Left);
             listView1.Columns.Add("Category", 100, HorizontalAlignment.Left);
-            listView1.Columns.Add("Description", 400, HorizontalAlignment.Left);
+            listView1.Columns.Add("Description", 450, HorizontalAlignment.Left);
             listView1.Columns.Add("Due Date", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Priority Level", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Status", 100, HorizontalAlignment.Left);
-            listView1.Columns.Add("Actions", 100, HorizontalAlignment.Left);
 
             // Add custom drawing for rows and headers
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
