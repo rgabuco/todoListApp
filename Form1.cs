@@ -516,6 +516,10 @@ namespace PROJ
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             cmbCategory.SelectedIndex = 0;
+            cmbPriority.SelectedIndex = 0;
+            cmbStatus.SelectedIndex = 0;
+            txtSearchBar.Clear();
+            FilterTasks();
             RefreshListView(); // Reload all tasks
         }
 
@@ -569,17 +573,24 @@ namespace PROJ
             }
         }
 
-        private void txtSearchBar_TextChanged(object sender, EventArgs e)
+        private void FilterTasks()
         {
             string query = txtSearchBar.Text.Trim().ToLower();
+            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
+            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
+
             listView1.Items.Clear();
 
             var tasks = dbHelper.GetTasks();
 
-            var filteredTasks = tasks.Where(task => 
-            string.IsNullOrEmpty(query) || // Show all if query is empty
-            task.TaskName.ToLower().Contains(query) || // Match TaskName
-            task.Category.ToLower().Contains(query)); // Match Category
+            var filteredTasks = tasks.Where(task =>
+            (string.IsNullOrEmpty(query) || // Show all if query is empty
+            task.TaskName.ToLower().Contains(query) ||
+            task.Category.ToLower().Contains(query)) &&
+            (selectedPriority == "All" || 
+            task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)) &&
+            (selectedStatus == "All" ||
+            task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)));
 
             // Add the filtered tasks to the ListView
             foreach (var task in filteredTasks)
@@ -594,6 +605,24 @@ namespace PROJ
                     task.Id
                 );
             }
+        }
+
+        // Filters tasks with search input
+        private void txtSearchBar_TextChanged(object sender, EventArgs e)
+        {
+            FilterTasks();
+        }
+
+        // Filter tasks with Priority Level
+        private void cmbPriority_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            FilterTasks();
+        }
+
+        // Filter tasks with task Status
+        private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            FilterTasks();
         }
     }
 }
