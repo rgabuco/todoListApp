@@ -424,6 +424,20 @@ namespace PROJ
              }
         }
 
+         private void ListView1_KeyDown(object sender, KeyEventArgs e)
+         {
+             if (e.Control)
+             {
+                 // Allow multi-selection when the Ctrl key is pressed
+                 listView1.MultiSelect = true;
+             }
+             else
+             {
+                 // Disable multi-selection when the Ctrl key is not pressed
+                 listView1.MultiSelect = false;
+             }
+         }
+
         private void EditTask(ListViewItem item)
         {
             // Open the edit form with task details
