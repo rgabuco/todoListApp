@@ -384,11 +384,26 @@ namespace PROJ
 
         private void listView1_MouseClick(object? sender, MouseEventArgs e)
         {
-            // Manage clicks on tasks to edit them
-            ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
-            if (clickedItem != null)
+           if (e.Button == MouseButtons.Right)
             {
-                EditTask(clickedItem);
+                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+            
+                if (clickedItem != null)
+                {
+                    // Open the EditTask method when right-clicking
+                    EditTask(clickedItem);
+                }
+            }
+            else
+            {
+                
+                // Left-click to highlight the row
+                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+                if (clickedItem != null)
+                {
+                    // Highlight the clicked row (you can customize this as needed)
+                    clickedItem.Selected = true;
+                }
             }
         }
 
