@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace PROJ
@@ -7,8 +7,6 @@ namespace PROJ
     {
         private DatabaseHelper dbHelper = new DatabaseHelper();
         public bool IsEditMode { get; set; }
-        public bool IsDeleteAction { get; private set; } = false;
-
         public string TaskName { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -55,9 +53,8 @@ namespace PROJ
             cmbPriorityLevel.SelectedItem = priorityLevel;
             cmbStatus.SelectedItem = status; 
 
-            // Change the button text to "Save" and "Delete" when editing
+            // Change the button text to "Save" when editing
             btnAdd.Text = "Save";
-            btnCancel.Text = "Delete";
         }
 
 
@@ -263,20 +260,9 @@ namespace PROJ
 
         private void btnCancel_Click(object? sender, EventArgs e)
         {
-            if (IsEditMode)
-            {
-                if (MessageBox.Show("Are you sure you want to delete this task?", "Delete Task", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    IsDeleteAction = true;
-                    this.DialogResult = DialogResult.Cancel;
-                    this.Close();
-                }
-            }
-            else
-            {
-                this.DialogResult = DialogResult.Cancel;
-                this.Close();
-            }
+
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
         }
         private void btnManageCategories_Click(object sender, EventArgs e)
         {
