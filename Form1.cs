@@ -26,7 +26,6 @@ namespace PROJ
 
             listView1.KeyDown += ListView1_KeyDown;
             listView1.MouseClick += listView1_MouseClick;
-            listView1.MultiSelect = false;
         }
 
         private void InitializeWeatherPanel()
@@ -303,7 +302,7 @@ namespace PROJ
         }
 
 
-
+        
 
         private void InitializeListView()
         {
@@ -312,6 +311,7 @@ namespace PROJ
             listView1.FullRowSelect = true;
             listView1.GridLines = true;
             listView1.OwnerDraw = true;
+            //listView1.MultiSelect = true;
 
             // Add columns to show task details
 
@@ -324,12 +324,16 @@ namespace PROJ
             listView1.Columns.Add("Priority Level", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Status", 100, HorizontalAlignment.Left);
 
+
             // Add custom drawing for rows and headers
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawItem += listView1_DrawItem;
             listView1.DrawSubItem += listView1_DrawSubItem;
             listView1.MouseClick += listView1_MouseClick;
-        }
+            listView1.MouseClick += listView1_MouseUp;
+            listView1.MouseDoubleClick += listView1_MouseDoubleClick;
+            
+    }
 
 
         private void listView1_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
@@ -380,63 +384,116 @@ namespace PROJ
             item.SubItems.Add(dueDate);
             item.SubItems.Add(priorityLevel);
             item.SubItems.Add(status);
-            item.SubItems.Add("Edit/Delete");
             listView1.Items.Add(item);
 
         }
 
+        private bool isRightClickHandled = false;
 
-        private void listView1_MouseClick(object? sender, MouseEventArgs e)
+        private void listView1_MouseUp(object sender, MouseEventArgs e)
         {
-            // Right-click to open the EditTask method
-             if (e.Button == MouseButtons.Right)
-             {
-                 ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
-            
-                 if (clickedItem != null)
-                 {
-                     // Open the EditTask method when right-clicking
-                     EditTask(clickedItem);
-                 }
-             }
-             else if (e.Button == MouseButtons.Left)
-             {
-                 // Left-click to highlight/select the row
-                 ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
-            
-                 if (clickedItem != null)
-                 {
-                     if (Control.ModifierKeys == Keys.Control)
-                     {
-                         // If the Ctrl key is pressed, toggle the selection of the clicked item
-                         clickedItem.Selected = !clickedItem.Selected;
-                     }
-                     else
-                     {
-                         // If Ctrl is not pressed, allow single selection (unselect other items)
-                         foreach (ListViewItem item in listView1.Items)
-                         {
-                             item.Selected = false;  // Deselect all items
-                         }
-                         clickedItem.Selected = true;  // Select the clicked item
-                     }
-                 }
-             }
+            if (e.Button == MouseButtons.Right && !isRightClickHandled)
+            {
+                isRightClickHandled = true; // Prevent multiple triggers
+
+                // Get the clicked item in the ListView
+                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+
+                if (clickedItem != null)
+                {
+                    // Show the confirmation dialog only if at least one item is selected
+                    if (listView1.SelectedItems.Count > 0)
+                    {
+                        DialogResult result = MessageBox.Show(
+                            "Are you sure you want to delete the selected task(s)?",
+                            "Delete Task",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question
+                        );
+
+                        if (result == DialogResult.Yes)
+                        {
+                            // Loop through all selected items and remove them
+                            foreach (ListViewItem item in listView1.SelectedItems)
+                            {
+                                // Remove from ListView
+                                listView1.Items.Remove(item);
+
+                                // Delete from the database
+                                dbHelper.DeleteTask((int)item.Tag);  // Assuming Tag holds the task ID
+                            }
+
+                            // Refresh ListView and other controls
+                            RefreshListView();
+                            UpdateCategoryDropdown();
+                            MessageBox.Show("Selected task(s) deleted.");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Task deletion canceled.");
+                        }
+                    }
+                }
+
+                // Reset the flag to allow handling of future right-clicks
+                isRightClickHandled = false;
+            }
         }
 
-         private void ListView1_KeyDown(object sender, KeyEventArgs e)
-         {
-             if (e.Control)
-             {
-                 // Allow multi-selection when the Ctrl key is pressed
-                 listView1.MultiSelect = true;
-             }
-             else
-             {
-                 // Disable multi-selection when the Ctrl key is not pressed
-                 listView1.MultiSelect = false;
-             }
-         }
+        private void listView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                // Left-click to highlight/select the row
+                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+
+                if (clickedItem != null)
+                {
+                    if (Control.ModifierKeys == Keys.Control)
+                    {
+                        clickedItem.Selected = !clickedItem.Selected;
+                    }
+                    else
+                    {
+                        foreach (ListViewItem item in listView1.Items)
+                        {
+                            item.Selected = false;  
+                        }
+                        clickedItem.Selected = true;  
+                    }
+                }
+            }
+        }
+
+
+
+        private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            // Left double-click to open the EditTask method
+            ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+
+            if (clickedItem != null)
+            {
+                // Open the EditTask method when double-clicking
+                EditTask(clickedItem);
+            }
+        }
+
+
+        private void ListView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control)
+            {
+                // Allow multi-selection when the Ctrl key is pressed
+                listView1.MultiSelect = true;
+            }
+            else
+            {
+                // Disable multi-selection when the Ctrl key is not pressed
+                listView1.MultiSelect = false;
+            }
+        }
+
 
         private void EditTask(ListViewItem item)
         {
@@ -454,15 +511,6 @@ namespace PROJ
 
             if (result == DialogResult.OK)
             {
-                // Update the list if some changes were made
-                RefreshListView();
-                UpdateCategoryDropdown();
-            }
-            else if (result == DialogResult.Cancel && form2.IsDeleteAction)
-            {
-                // Remove the task if it was deleted
-                listView1.Items.Remove(item);
-                dbHelper.DeleteTask((int)item.Tag);
                 RefreshListView();
                 UpdateCategoryDropdown();
             }
@@ -516,10 +564,6 @@ namespace PROJ
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             cmbCategory.SelectedIndex = 0;
-            cmbPriority.SelectedIndex = 0;
-            cmbStatus.SelectedIndex = 0;
-            txtSearchBar.Clear();
-            FilterTasks();
             RefreshListView(); // Reload all tasks
         }
 
@@ -571,58 +615,6 @@ namespace PROJ
                     }
                 }
             }
-        }
-
-        private void FilterTasks()
-        {
-            string query = txtSearchBar.Text.Trim().ToLower();
-            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
-            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
-
-            listView1.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-
-            var filteredTasks = tasks.Where(task =>
-            (string.IsNullOrEmpty(query) || // Show all if query is empty
-            task.TaskName.ToLower().Contains(query) ||
-            task.Category.ToLower().Contains(query)) &&
-            (selectedPriority == "All" || 
-            task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)) &&
-            (selectedStatus == "All" ||
-            task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)));
-
-            // Add the filtered tasks to the ListView
-            foreach (var task in filteredTasks)
-            {
-                AddTaskToListView(
-                    task.TaskName,
-                    task.Category,
-                    task.DueDate.ToString("yyyy-MM-dd"),
-                    task.Description,
-                    task.PriorityLevel,
-                    task.Status,
-                    task.Id
-                );
-            }
-        }
-
-        // Filters tasks with search input
-        private void txtSearchBar_TextChanged(object sender, EventArgs e)
-        {
-            FilterTasks();
-        }
-
-        // Filter tasks with Priority Level
-        private void cmbPriority_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            FilterTasks();
-        }
-
-        // Filter tasks with task Status
-        private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            FilterTasks();
         }
     }
 }
