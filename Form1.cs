@@ -23,6 +23,10 @@ namespace PROJ
             InitializeWeatherPanel();
             InitializeListView();
             LoadWeatherData();
+
+            listView1.KeyDown += ListView1_KeyDown;
+            listView1.MouseClick += listView1_MouseClick;
+            listView1.MultiSelect = false;
         }
 
         private void InitializeWeatherPanel()
@@ -384,27 +388,40 @@ namespace PROJ
 
         private void listView1_MouseClick(object? sender, MouseEventArgs e)
         {
-           if (e.Button == MouseButtons.Right)
-            {
-                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+            // Right-click to open the EditTask method
+             if (e.Button == MouseButtons.Right)
+             {
+                 ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
             
-                if (clickedItem != null)
-                {
-                    // Open the EditTask method when right-clicking
-                    EditTask(clickedItem);
-                }
-            }
-            else
-            {
-                
-                // Left-click to highlight the row
-                ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
-                if (clickedItem != null)
-                {
-                    // Highlight the clicked row (you can customize this as needed)
-                    clickedItem.Selected = true;
-                }
-            }
+                 if (clickedItem != null)
+                 {
+                     // Open the EditTask method when right-clicking
+                     EditTask(clickedItem);
+                 }
+             }
+             else if (e.Button == MouseButtons.Left)
+             {
+                 // Left-click to highlight/select the row
+                 ListViewItem clickedItem = listView1.GetItemAt(e.X, e.Y);
+            
+                 if (clickedItem != null)
+                 {
+                     if (Control.ModifierKeys == Keys.Control)
+                     {
+                         // If the Ctrl key is pressed, toggle the selection of the clicked item
+                         clickedItem.Selected = !clickedItem.Selected;
+                     }
+                     else
+                     {
+                         // If Ctrl is not pressed, allow single selection (unselect other items)
+                         foreach (ListViewItem item in listView1.Items)
+                         {
+                             item.Selected = false;  // Deselect all items
+                         }
+                         clickedItem.Selected = true;  // Select the clicked item
+                     }
+                 }
+             }
         }
 
         private void EditTask(ListViewItem item)
