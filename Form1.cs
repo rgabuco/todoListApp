@@ -566,7 +566,7 @@ namespace PROJ
             cmbCategory.SelectedIndex = 0;
             cmbPriority.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
-            txtSearchBar.Clear();
+            textBox1.Clear();
             FilterTasks();
             RefreshListView(); // Reload all tasks
         }
