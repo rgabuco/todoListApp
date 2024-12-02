@@ -623,7 +623,7 @@ namespace PROJ
         
         private void FilterTasks()
         {
-            string query = txtSearchBar.Text.Trim().ToLower();
+            string query = textBox1.Text.Trim().ToLower();
             string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
             string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
             listView1.Items.Clear();
