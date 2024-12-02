@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using DotNetEnv;
 using Newtonsoft.Json.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace PROJ
 {
@@ -22,7 +23,6 @@ namespace PROJ
             InitializeComponent();
             InitializeWeatherPanel();
             InitializeListView();
-            AddSearchBarPlaceholder();
             LoadWeatherData();
 
             listView1.KeyDown += ListView1_KeyDown;
@@ -242,22 +242,23 @@ namespace PROJ
         {
             dbHelper.LoadTasks(listView1);
 
-            LoadCategories(); // Load categories from file
-            UpdateCategoryDropdown(); // to update the dropdown
-            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; //handle categoryfilter changes
+
+            textBox1.TextChanged += textBox1_TextChanged;
 
             // Populate cmbPriority with priority levels
             cmbPriority.Items.AddRange(new string[] { "All", "Low", "Medium", "High" });
-            cmbPriority.SelectedIndex = 0; // Default to "All"
-            cmbPriority.SelectedIndexChanged += cmbPriority_SelectedIndexChanged;
+            cmbPriority.SelectedIndex = 0;
 
             // Populate cmbStatus with status levels
-            cmbStatus.Items.AddRange(new string[] { "All", "Starting", "In Progress", "Completed" });
-            cmbStatus.SelectedIndex = 0; // Default to "All"
-            cmbStatus.SelectedIndexChanged += cmbStatus_SelectedIndexChanged;
+            cmbStatus.Items.AddRange(new string[] { "All", "Starting", "In Progress", "Complete" });
+            cmbStatus.SelectedIndex = 0;
 
-            textBox1.TextChanged += textBox1_TextChanged;
-            
+            AddSearchBarPlaceholder();
+            LoadCategories(); // Load categories from file
+            UpdateCategoryDropdown(); // to update the dropdown
+            cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; //handle categoryfilter changes
+            cmbStatus.SelectedIndexChanged += cmbStatus_SelectedIndexChanged; // handle status filter changes
+            cmbPriority.SelectedIndexChanged += cmbPriority_SelectedIndexChanged; // handle priority level filter changes
         }
 
         private void LoadCategories()
@@ -581,7 +582,6 @@ namespace PROJ
             cmbStatus.SelectedIndex = 0;
             textBox1.Clear();
             AddSearchBarPlaceholder();
-            FilterTasks();
             RefreshListView(); // Reload all tasks
         }
 
@@ -660,27 +660,47 @@ namespace PROJ
             };
         }
 
-        private void FilterTasks()
+        // Filters tasks with search input
+        private void textBox1_TextChanged(object sender, EventArgs e)
         {
+
             string query = textBox1.Text.Trim().ToLower();
-            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
-            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
 
             listView1.Items.Clear();
 
             var tasks = dbHelper.GetTasks();
 
             var filteredTasks = tasks.Where(task =>
-                (string.IsNullOrEmpty(query) || // Show all if query is empty
+                (string.IsNullOrEmpty(query) ||
                 task.TaskName.ToLower().Contains(query) ||
-                task.Category.ToLower().Contains(query)) &&
-                (selectedPriority == "All" || 
-                task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)) &&
-                (selectedStatus == "All" ||
-                task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase))
-               ).ToList();
+                task.Category.ToLower().Contains(query)));
 
-            // Add the filtered tasks to the ListView
+             foreach (var task in filteredTasks)
+            {
+                AddTaskToListView(
+                    task.TaskName,
+                    task.Category,
+                    task.DueDate.ToString("yyyy-MM-dd"),
+                    task.Description,
+                    task.PriorityLevel,
+                    task.Status,
+                    task.Id
+                );
+            }
+        }
+        // Filter tasks with Priority Level
+        private void cmbPriority_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
+            listView1.Items.Clear();
+
+            var tasks = dbHelper.GetTasks();
+
+            // Priority filter
+            var filteredTasks = tasks.Where(task =>
+            (selectedPriority == "All" ||
+             task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)));
+
             foreach (var task in filteredTasks)
             {
                 AddTaskToListView(
@@ -695,20 +715,30 @@ namespace PROJ
             }
         }
 
-        // Filters tasks with search input
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            FilterTasks();
-        }
-        // Filter tasks with Priority Level
-        private void cmbPriority_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            FilterTasks();
-        }
         // Filter tasks with task Status
         private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
-            FilterTasks();
+            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
+            listView1.Items.Clear();
+
+            var tasks = dbHelper.GetTasks();
+
+            var filteredTasks = tasks.Where(task =>
+                (selectedStatus == "All" ||
+                 task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)));
+
+            foreach (var task in filteredTasks)
+            {
+                AddTaskToListView(
+                    task.TaskName,
+                    task.Category,
+                    task.DueDate.ToString("yyyy-MM-dd"),
+                    task.Description,
+                    task.PriorityLevel,
+                    task.Status,
+                    task.Id
+                );
+            }
         }
     }
 }
