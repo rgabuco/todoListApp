@@ -22,6 +22,7 @@ namespace PROJ
             InitializeComponent();
             InitializeWeatherPanel();
             InitializeListView();
+            AddSearchBarPlaceholder();
             LoadWeatherData();
 
             listView1.KeyDown += ListView1_KeyDown;
@@ -239,14 +240,26 @@ namespace PROJ
 
         private void Form1_Load_1(object? sender, EventArgs e)
         {
-
             dbHelper.LoadTasks(listView1);
 
             LoadCategories(); // Load categories from file
             UpdateCategoryDropdown(); // to update the dropdown
             cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; //handle categoryfilter changes
 
+            // Populate cmbPriority with priority levels
+            cmbPriority.Items.AddRange(new string[] { "All", "Low", "Medium", "High" });
+            cmbPriority.SelectedIndex = 0; // Default to "All"
+            cmbPriority.SelectedIndexChanged += cmbPriority_SelectedIndexChanged;
+
+            // Populate cmbStatus with status levels
+            cmbStatus.Items.AddRange(new string[] { "All", "Starting", "In Progress", "Completed" });
+            cmbStatus.SelectedIndex = 0; // Default to "All"
+            cmbStatus.SelectedIndexChanged += cmbStatus_SelectedIndexChanged;
+
+            textBox1.TextChanged += textBox1_TextChanged;
+            
         }
+
         private void LoadCategories()
         {
             string filePath = "categories.txt";//where we save the categories
@@ -567,6 +580,7 @@ namespace PROJ
             cmbPriority.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
             textBox1.Clear();
+            AddSearchBarPlaceholder();
             FilterTasks();
             RefreshListView(); // Reload all tasks
         }
@@ -620,24 +634,51 @@ namespace PROJ
                 }
             }
         }
-        
+        private void AddSearchBarPlaceholder()
+        {
+            string placeholderText = "Search tasks...";
+
+            textBox1.ForeColor = Color.Gray; 
+            textBox1.Text = placeholderText; 
+
+            textBox1.GotFocus += (s, e) =>
+            {
+                if (textBox1.Text == placeholderText)
+                {
+                    textBox1.Text = ""; 
+                    textBox1.ForeColor = Color.Black; 
+                }
+            };
+
+            textBox1.LostFocus += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(textBox1.Text))
+                {
+                    textBox1.Text = placeholderText;
+                    textBox1.ForeColor = Color.Gray; 
+                }
+            };
+        }
+
         private void FilterTasks()
         {
             string query = textBox1.Text.Trim().ToLower();
             string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
             string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
+
             listView1.Items.Clear();
 
             var tasks = dbHelper.GetTasks();
 
             var filteredTasks = tasks.Where(task =>
-            (string.IsNullOrEmpty(query) || // Show all if query is empty
-            task.TaskName.ToLower().Contains(query) ||
-            task.Category.ToLower().Contains(query)) &&
-            (selectedPriority == "All" || 
-            task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)) &&
-            (selectedStatus == "All" ||
-            task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)));
+                (string.IsNullOrEmpty(query) || // Show all if query is empty
+                task.TaskName.ToLower().Contains(query) ||
+                task.Category.ToLower().Contains(query)) &&
+                (selectedPriority == "All" || 
+                task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)) &&
+                (selectedStatus == "All" ||
+                task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase))
+               ).ToList();
 
             // Add the filtered tasks to the ListView
             foreach (var task in filteredTasks)
@@ -653,8 +694,9 @@ namespace PROJ
                 );
             }
         }
+
         // Filters tasks with search input
-        private void txtSearchBar_TextChanged(object sender, EventArgs e)
+        private void textBox1_TextChanged(object sender, EventArgs e)
         {
             FilterTasks();
         }
