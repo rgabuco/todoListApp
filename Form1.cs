@@ -181,17 +181,17 @@ namespace PROJ
 
         private void listView1_DrawItem(object? sender, DrawListViewItemEventArgs e)
         {
-            Color rowColor = (e.ItemIndex % 2 == 0) ? Color.LightGray : Color.White;
-            using (Brush brush = new SolidBrush(rowColor))
-            {
-                e.Graphics.FillRectangle(brush, e.Bounds);
-            }
+
+
+            
             e.DrawDefault = true;
         }
 
         private void listView1_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
         {
+            
             e.DrawDefault = true;
+
         }
 
         private void btnNewTask_Click(object? sender, EventArgs e)
