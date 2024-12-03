@@ -1,6 +1,6 @@
 ﻿namespace PROJ
 {
-    partial class Form2
+    partial class TaskForm
     {
         /// <summary>
         /// Required designer variable.

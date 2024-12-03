@@ -194,7 +194,7 @@
 
         #endregion
 
-        private ListView listView1;
+        public ListView listView1;
         private Button btnNewTask;
         private ColumnHeader columnHeader1;
         private ColumnHeader columnHeader2;

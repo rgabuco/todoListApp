@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
 
-namespace PROJ
+namespace PROJ.Database
 {
     public class DatabaseHelper
     {

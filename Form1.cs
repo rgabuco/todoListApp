@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using DotNetEnv;
 using Newtonsoft.Json.Linq;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+using PROJ.Services;
+using PROJ.Database;
 
 namespace PROJ
 {
@@ -17,16 +20,29 @@ namespace PROJ
         private List<string> categories = new List<string>(); // Store category list
         private Panel weatherPanel = new Panel();
         private bool isOffline = true; // Flag to indicate offline mode
+        private WeatherService weatherService;
+        private SearchAndFilterService searchAndFilterService;
+        private ExportFileService exportFileService = new ExportFileService();
+        private const string PlaceholderText = "Search tasks...";
 
         public Form1()
         {
             InitializeComponent();
             InitializeWeatherPanel();
             InitializeListView();
+            weatherService = new WeatherService(weatherPanel, isOffline);
+            searchAndFilterService = new SearchAndFilterService(dbHelper);
             LoadWeatherData();
 
             listView1.KeyDown += ListView1_KeyDown;
             listView1.MouseClick += listView1_MouseClick;
+
+            // Set placeholder text
+            textBox1.Text = PlaceholderText;
+            textBox1.ForeColor = Color.Gray;
+            textBox1.GotFocus += RemovePlaceholderText;
+            textBox1.GotFocus += (s, e) => searchAndFilterService.ClearStoredItems(listView1); // Clear stored items when TextBox gets focus
+            textBox1.LostFocus += SetPlaceholderText;
         }
 
         private void InitializeWeatherPanel()
@@ -41,219 +57,25 @@ namespace PROJ
             this.Controls.Add(weatherPanel);
         }
 
-
-
         private async void LoadWeatherData()
         {
-            if (isOffline)
-            {
-                // Use dummy data when offline
-                string dummyJson = @"
-            {
-                'forecast': {
-                    'forecastday': [
-                        {
-                            'date': '2023-10-01',
-                            'day': {
-                                'avgtemp_c': 15.0,
-                                'condition': {
-                                    'text': 'Sunny',
-                                    'icon': '//cdn.weatherapi.com/weather/64x64/day/113.png'
-                                }
-                            }
-                        },
-                        {
-                            'date': '2023-10-02',
-                            'day': {
-                                'avgtemp_c': 17.0,
-                                'condition': {
-                                    'text': 'Partly cloudy',
-                                    'icon': '//cdn.weatherapi.com/weather/64x64/day/116.png'
-                                }
-                            }
-                        },
-                        {
-                            'date': '2023-10-03',
-                            'day': {
-                                'avgtemp_c': 14.0,
-                                'condition': {
-                                    'text': 'Rainy',
-                                    'icon': '//cdn.weatherapi.com/weather/64x64/day/308.png'
-                                }
-                            }
-                        }
-                    ]
-                }
-            }";
-                JObject data = JObject.Parse(dummyJson);
-                DisplayWeatherData(data);
-            }
-            else
-            {
-                string apiKey = Environment.GetEnvironmentVariable("API_KEY") ??
-                               throw new InvalidOperationException("Weather API key is not set.");
-
-                if (string.IsNullOrEmpty(apiKey))
-                {
-                    MessageBox.Show("Weather API key is not set.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-
-                string city = "Calgary";
-                string url = $"http://api.weatherapi.com/v1/forecast.json?key={apiKey}&q={city}&days=3";
-
-                using (HttpClient client = new HttpClient())
-                {
-                    try
-                    {
-                        HttpResponseMessage response = await client.GetAsync(url);
-                        //MessageBox.Show($"Response Status Code: {response.StatusCode}");
-                        if (response.IsSuccessStatusCode)
-                        {
-                            string json = await response.Content.ReadAsStringAsync();
-                            //MessageBox.Show($"Response JSON: {json}");
-                            JObject data = JObject.Parse(json);
-                            DisplayWeatherData(data);
-                        }
-                        else
-                        {
-                            //MessageBox.Show("Failed to fetch weather data.");
-                            DisplayErrorMessage("Failed to fetch weather data.");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        //MessageBox.Show($"Exception: {ex.Message}");
-                        DisplayErrorMessage($"Exception: {ex.Message}");
-                    }
-                }
-            }
-        }
-
-        private void DisplayWeatherData(JObject data)
-        {
-            // Clear existing controls in the weather panel
-            weatherPanel.Controls.Clear();
-
-            // Set the weather panel size and position
-            int weatherPanelWidth = 343;
-            int weatherPanelHeight = 165; // Adjusted to accommodate content
-            weatherPanel.Size = new Size(weatherPanelWidth, weatherPanelHeight);
-            weatherPanel.BackColor = Color.Transparent;
-
-            // Specify the position of the first dayPanel
-            int firstPanelX = 10; // X-coordinate of the top-left corner
-            int firstPanelY = 20; // Y-coordinate of the top-left corner
-
-            // Define dayPanel dimensions and spacing
-            int dayPanelWidth = 100; // Width of each dayPanel
-            int dayPanelHeight = 130; // Increased height to fit all content
-            int spacing = 10; // Space between day panels
-
-            JArray days = (JArray)data["forecast"]["forecastday"];
-
-            for (int i = 0; i < 3; i++) // Loop through the first 3 days
-            {
-                JObject day = (JObject)days[i];
-                string date = DateTime.Parse((string)day["date"]).ToString("ddd");
-                string icon = (string)day["day"]["condition"]["icon"];
-                string description = (string)day["day"]["condition"]["text"];
-                string temp = ((double)day["day"]["avgtemp_c"]).ToString("0.0") + "°C";
-
-                Panel dayPanel = new Panel
-                {
-                    Width = dayPanelWidth,
-                    Height = dayPanelHeight,
-                    BackColor = Color.LightSkyBlue,
-                    BorderStyle = BorderStyle.FixedSingle,
-
-                    // Set the position of the current dayPanel
-                    Location = new Point(
-                        firstPanelX + (dayPanelWidth + spacing) * i, // X-coordinate with spacing
-                        firstPanelY // Y-coordinate remains the same
-                    )
-                };
-
-                PictureBox iconBox = new PictureBox
-                {
-                    ImageLocation = $"http:{icon}",
-                    SizeMode = PictureBoxSizeMode.Zoom,
-                    Size = new Size(40, 40), // Adjust icon size
-                    Location = new Point((dayPanel.Width - 40) / 2, 5)
-                };
-
-                Label dateLabel = new Label
-                {
-                    Text = date,
-                    Font = new Font("Arial", 9, FontStyle.Bold),
-                    Location = new Point(0, 50),
-                    Width = dayPanel.Width,
-                    TextAlign = ContentAlignment.MiddleCenter
-                };
-
-                Label descriptionLabel = new Label
-                {
-                    Text = description,
-                    Font = new Font("Arial", 8),
-                    Location = new Point(0, 70),
-                    Width = dayPanel.Width,
-                    TextAlign = ContentAlignment.MiddleCenter
-                };
-
-                Label tempLabel = new Label
-                {
-                    Text = temp,
-                    Font = new Font("Arial", 9, FontStyle.Bold),
-                    ForeColor = Color.DarkBlue,
-                    Location = new Point(0, 95),
-                    Width = dayPanel.Width,
-                    TextAlign = ContentAlignment.MiddleCenter
-                };
-
-                // Add controls to the day panel
-                dayPanel.Controls.Add(iconBox);
-                dayPanel.Controls.Add(dateLabel);
-                dayPanel.Controls.Add(descriptionLabel);
-                dayPanel.Controls.Add(tempLabel);
-
-                // Add day panel to the weather panel
-                weatherPanel.Controls.Add(dayPanel);
-            }
-
-            // Add the weather panel to the form (if not already added)
-            if (!this.Controls.Contains(weatherPanel))
-            {
-                this.Controls.Add(weatherPanel);
-            }
-        }
-
-        private void DisplayErrorMessage(string message)
-        {
-            Label errorLabel = new Label
-            {
-                Text = message,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = Color.Red
-            };
-            weatherPanel.Controls.Add(errorLabel);
+            await weatherService.LoadWeatherData();
         }
 
         private void Form1_Load_1(object? sender, EventArgs e)
         {
             dbHelper.LoadTasks(listView1);
 
-
             textBox1.TextChanged += textBox1_TextChanged;
 
             // Populate cmbPriority with priority levels
-            cmbPriority.Items.AddRange(new string[] { "All", "Low", "Medium", "High" });
+            cmbPriority.Items.AddRange(new string[] { "All Priorities", "Low", "Medium", "High" });
             cmbPriority.SelectedIndex = 0;
 
             // Populate cmbStatus with status levels
-            cmbStatus.Items.AddRange(new string[] { "All", "Starting", "In Progress", "Complete" });
+            cmbStatus.Items.AddRange(new string[] { "All Statuses", "Starting", "In Progress", "Complete" });
             cmbStatus.SelectedIndex = 0;
 
-            AddSearchBarPlaceholder();
             LoadCategories(); // Load categories from file
             UpdateCategoryDropdown(); // to update the dropdown
             cmbCategory.SelectedIndexChanged += cmbCategory_SelectedIndexChanged; //handle categoryfilter changes
@@ -315,9 +137,6 @@ namespace PROJ
             }
         }
 
-
-        
-
         private void InitializeListView()
         {
             // Set up the task list display
@@ -338,7 +157,6 @@ namespace PROJ
             listView1.Columns.Add("Priority Level", 100, HorizontalAlignment.Left);
             listView1.Columns.Add("Status", 100, HorizontalAlignment.Left);
 
-
             // Add custom drawing for rows and headers
             listView1.DrawColumnHeader += listView1_DrawColumnHeader;
             listView1.DrawItem += listView1_DrawItem;
@@ -346,9 +164,7 @@ namespace PROJ
             listView1.MouseClick += listView1_MouseClick;
             listView1.MouseClick += listView1_MouseUp;
             listView1.MouseDoubleClick += listView1_MouseDoubleClick;
-            
-    }
-
+        }
 
         private void listView1_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
         {
@@ -361,7 +177,6 @@ namespace PROJ
 
             TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, Color.Black,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
-
         }
 
         private void listView1_DrawItem(object? sender, DrawListViewItemEventArgs e)
@@ -382,24 +197,9 @@ namespace PROJ
         private void btnNewTask_Click(object? sender, EventArgs e)
         {
             // Open the form to add a new task
-            Form2 F2 = new Form2();
+            TaskForm F2 = new TaskForm(searchAndFilterService);
             F2.Owner = this;
             F2.ShowDialog();
-        }
-
-        public void AddTaskToListView(string taskName, string category, string dueDate, string description, string priorityLevel, string status, int taskId)
-        {
-            ListViewItem item = new ListViewItem(taskName)
-            {
-                Tag = taskId // Store the task ID for later use
-            };
-            item.SubItems.Add(category);
-            item.SubItems.Add(description);
-            item.SubItems.Add(dueDate);
-            item.SubItems.Add(priorityLevel);
-            item.SubItems.Add(status);
-            listView1.Items.Add(item);
-
         }
 
         private bool isRightClickHandled = false;
@@ -471,15 +271,13 @@ namespace PROJ
                     {
                         foreach (ListViewItem item in listView1.Items)
                         {
-                            item.Selected = false;  
+                            item.Selected = false;
                         }
-                        clickedItem.Selected = true;  
+                        clickedItem.Selected = true;
                     }
                 }
             }
         }
-
-
 
         private void listView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
@@ -489,10 +287,25 @@ namespace PROJ
             if (clickedItem != null)
             {
                 // Open the EditTask method when double-clicking
-                EditTask(clickedItem);
+                TaskForm form2 = new TaskForm(
+                    clickedItem.SubItems[0].Text,
+                    clickedItem.SubItems[1].Text,
+                    clickedItem.SubItems[2].Text,
+                    clickedItem.SubItems[3].Text,
+                    clickedItem.SubItems[4].Text,
+                    clickedItem.SubItems[5].Text,
+                    clickedItem,
+                    searchAndFilterService);
+
+                DialogResult result = form2.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    RefreshListView();
+                    UpdateCategoryDropdown();
+                }
             }
         }
-
 
         private void ListView1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -508,28 +321,6 @@ namespace PROJ
             }
         }
 
-
-        private void EditTask(ListViewItem item)
-        {
-            // Open the edit form with task details
-            Form2 form2 = new Form2(
-                item.SubItems[0].Text,
-                item.SubItems[1].Text,
-                item.SubItems[2].Text,
-                item.SubItems[3].Text,
-                item.SubItems[4].Text,
-                item.SubItems[5].Text,
-                item);
-
-            DialogResult result = form2.ShowDialog();
-
-            if (result == DialogResult.OK)
-            {
-                RefreshListView();
-                UpdateCategoryDropdown();
-            }
-        }
-
         private void cmbCategory_SelectedIndexChanged(object? sender, EventArgs e)
         {
             //manages category filtering
@@ -539,30 +330,18 @@ namespace PROJ
             }
 
             string selectedCategory = cmbCategory.SelectedItem.ToString();
-
-            listView1.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-            var filteredTasks = tasks.Where(task =>
-                selectedCategory == "All Categories" ||
-                task.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
-            );
-
-            foreach (var task in filteredTasks)
-            {
-                AddTaskToListView(task.TaskName, task.Category, task.DueDate.ToString("yyyy-MM-dd"), task.Description, task.PriorityLevel, task.Status, task.Id);
-            }
+            searchAndFilterService.FilterTasksByCategory(listView1, selectedCategory);
         }
-
 
         public void RefreshListView()
         {
-            //reloads the tasks from the database
+            // Reloads the tasks from the database
             listView1.Items.Clear();
             dbHelper.LoadTasks(listView1);
+            searchAndFilterService.StoreCurrentItems(listView1); // Store the current items
             listView1.Refresh();
-
         }
+
         private void btnManageCategories_Click(object sender, EventArgs e)
         {
             // Open the category form
@@ -575,13 +354,14 @@ namespace PROJ
                 }
             }
         }
+
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             cmbCategory.SelectedIndex = 0;
             cmbPriority.SelectedIndex = 0;
             cmbStatus.SelectedIndex = 0;
             textBox1.Clear();
-            AddSearchBarPlaceholder();
+            SetPlaceholderText(textBox1, EventArgs.Empty); // Set placeholder text if the TextBox is empty
             RefreshListView(); // Reload all tasks
         }
 
@@ -595,149 +375,50 @@ namespace PROJ
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    try
-                    {
-                        using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
-                        {
-                            // Write the header line
-                            for (int i = 0; i < listView1.Columns.Count; i++)
-                            {
-                                writer.Write(listView1.Columns[i].Text);
-                                if (i < listView1.Columns.Count - 1)
-                                {
-                                    writer.Write(",");
-                                }
-                            }
-                            writer.WriteLine();
-
-                            // Write the data lines
-                            foreach (ListViewItem item in listView1.Items)
-                            {
-                                for (int i = 0; i < item.SubItems.Count; i++)
-                                {
-                                    writer.Write(item.SubItems[i].Text);
-                                    if (i < item.SubItems.Count - 1)
-                                    {
-                                        writer.Write(",");
-                                    }
-                                }
-                                writer.WriteLine();
-                            }
-                        }
-
-                        MessageBox.Show("Save successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error saving file: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    exportFileService.ExportListViewToCsv(listView1, saveFileDialog.FileName);
                 }
             }
-        }
-        private void AddSearchBarPlaceholder()
-        {
-            string placeholderText = "Search tasks...";
-
-            textBox1.ForeColor = Color.Gray; 
-            textBox1.Text = placeholderText; 
-
-            textBox1.GotFocus += (s, e) =>
-            {
-                if (textBox1.Text == placeholderText)
-                {
-                    textBox1.Text = ""; 
-                    textBox1.ForeColor = Color.Black; 
-                }
-            };
-
-            textBox1.LostFocus += (s, e) =>
-            {
-                if (string.IsNullOrWhiteSpace(textBox1.Text))
-                {
-                    textBox1.Text = placeholderText;
-                    textBox1.ForeColor = Color.Gray; 
-                }
-            };
         }
 
         // Filters tasks with search input
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
-            string query = textBox1.Text.Trim().ToLower();
-
-            listView1.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-
-            var filteredTasks = tasks.Where(task =>
-                (string.IsNullOrEmpty(query) ||
-                task.TaskName.ToLower().Contains(query) ||
-                task.Category.ToLower().Contains(query)));
-
-             foreach (var task in filteredTasks)
+            if (textBox1.Text != PlaceholderText)
             {
-                AddTaskToListView(
-                    task.TaskName,
-                    task.Category,
-                    task.DueDate.ToString("yyyy-MM-dd"),
-                    task.Description,
-                    task.PriorityLevel,
-                    task.Status,
-                    task.Id
-                );
+                string query = textBox1.Text.Trim().ToLower();
+                searchAndFilterService.SearchTasks(listView1, query);
             }
         }
+
         // Filter tasks with Priority Level
         private void cmbPriority_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All";
-            listView1.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-
-            // Priority filter
-            var filteredTasks = tasks.Where(task =>
-            (selectedPriority == "All" ||
-             task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)));
-
-            foreach (var task in filteredTasks)
-            {
-                AddTaskToListView(
-                    task.TaskName,
-                    task.Category,
-                    task.DueDate.ToString("yyyy-MM-dd"),
-                    task.Description,
-                    task.PriorityLevel,
-                    task.Status,
-                    task.Id
-                );
-            }
+            string selectedPriority = cmbPriority.SelectedItem?.ToString() ?? "All Priorities";
+            searchAndFilterService.FilterTasksByPriority(listView1, selectedPriority);
         }
 
         // Filter tasks with task Status
         private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All";
-            listView1.Items.Clear();
+            string selectedStatus = cmbStatus.SelectedItem?.ToString() ?? "All Statuses";
+            searchAndFilterService.FilterTasksByStatus(listView1, selectedStatus);
+        }
 
-            var tasks = dbHelper.GetTasks();
-
-            var filteredTasks = tasks.Where(task =>
-                (selectedStatus == "All" ||
-                 task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)));
-
-            foreach (var task in filteredTasks)
+        private void RemovePlaceholderText(object sender, EventArgs e)
+        {
+            if (textBox1.Text == PlaceholderText)
             {
-                AddTaskToListView(
-                    task.TaskName,
-                    task.Category,
-                    task.DueDate.ToString("yyyy-MM-dd"),
-                    task.Description,
-                    task.PriorityLevel,
-                    task.Status,
-                    task.Id
-                );
+                textBox1.Text = string.Empty;
+                textBox1.ForeColor = Color.Black;
+            }
+        }
+
+        private void SetPlaceholderText(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(textBox1.Text))
+            {
+                textBox1.Text = PlaceholderText;
+                textBox1.ForeColor = Color.Gray;
             }
         }
     }

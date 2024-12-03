@@ -1,11 +1,14 @@
+using PROJ.Database;
+using PROJ.Services;
 using System;
 using System.Windows.Forms;
 
 namespace PROJ
 {
-    public partial class Form2 : Form
+    public partial class TaskForm : Form
     {
         private DatabaseHelper dbHelper = new DatabaseHelper();
+        private SearchAndFilterService searchAndFilterService;
         public bool IsEditMode { get; set; }
         public string TaskName { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
@@ -15,25 +18,26 @@ namespace PROJ
         public string Status { get; set; } = string.Empty;
         private const string CategoryFilePath = "categories.txt";
 
-
         // Store the selected item for editing purposes
         private ListViewItem? _selectedItem;
 
         // Constructor for adding a new task
-        public Form2()
+        public TaskForm(SearchAndFilterService searchAndFilterService)
         {
             InitializeComponent();
             InitializeComboBox();
             IsEditMode = false;
+            this.searchAndFilterService = searchAndFilterService;
         }
 
         // Constructor for editing a task
-        public Form2(string taskName, string category, string description, string dueDate, string priorityLevel, string status, ListViewItem? selectedItem = null)
+        public TaskForm(string taskName, string category, string description, string dueDate, string priorityLevel, string status, ListViewItem? selectedItem, SearchAndFilterService searchAndFilterService)
         {
             InitializeComponent();
             InitializeComboBox();
 
-            IsEditMode = true; 
+            IsEditMode = true;
+            this.searchAndFilterService = searchAndFilterService;
 
             // Set the selected item for updating
             _selectedItem = selectedItem ?? throw new ArgumentNullException(nameof(selectedItem));
@@ -51,12 +55,11 @@ namespace PROJ
             txtDescription.Text = description;
             dtpDueDate.Value = DateTime.Parse(dueDate);
             cmbPriorityLevel.SelectedItem = priorityLevel;
-            cmbStatus.SelectedItem = status; 
+            cmbStatus.SelectedItem = status;
 
             // Change the button text to "Save" when editing
             btnAdd.Text = "Save";
         }
-
 
         private void InitializeComboBox()
         {
@@ -65,7 +68,6 @@ namespace PROJ
             {
                 cmbCategory.Items.AddRange(categories.ToArray());
             }
-
 
             // Add items for Priority Level and Status
             cmbPriorityLevel.Items.AddRange(new string[] { "Low", "Medium", "High" });
@@ -90,7 +92,6 @@ namespace PROJ
             cmbStatus.DrawMode = DrawMode.OwnerDrawFixed;
 
             Color customColor = ColorTranslator.FromHtml("#7974A8");
-
 
             cmbCategory.DrawItem += (sender, e) =>
             {
@@ -156,7 +157,7 @@ namespace PROJ
                 e.DrawBackground();
 
                 Color backgroundColor = ColorTranslator.FromHtml("#7974A8"); // Purple background
-                Color textColor = Color.White; 
+                Color textColor = Color.White;
 
                 if (e.State.HasFlag(DrawItemState.Selected))
                 {
@@ -164,7 +165,7 @@ namespace PROJ
                 }
                 else
                 {
-                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds); 
+                    e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds);
                 }
 
                 if (e.Index >= 0)
@@ -179,8 +180,9 @@ namespace PROJ
                 e.DrawFocusRectangle();
             };
         }
+
         private void btnAdd_Click(object? sender, EventArgs e)
-        {            
+        {
             // Get all the info from the input fields
 
             string taskName = txtTaskName.Text.Trim();
@@ -189,7 +191,7 @@ namespace PROJ
             DateTime dueDate = dtpDueDate.Value;
             string priorityLevel = cmbPriorityLevel.SelectedItem?.ToString();
             string status = cmbStatus.SelectedItem?.ToString();
-            
+
             // Check if the inputs are empty
             if (string.IsNullOrWhiteSpace(taskName) || string.IsNullOrWhiteSpace(category) ||
                 string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(priorityLevel) ||
@@ -224,8 +226,6 @@ namespace PROJ
 
                     // Refresh the main form
                     parentForm?.RefreshListView();
-
-                    
                     parentForm?.UpdateCategoryDropdown();
                 }
                 else
@@ -233,15 +233,19 @@ namespace PROJ
                     // Add a new task to the database
                     dbHelper.AddTask(taskName, category, description, dueDate, priorityLevel, status);
 
-                    // Add the new task to the ListView
-                    parentForm?.AddTaskToListView(
-                        taskName,
-                        category,
-                        dueDate.ToString("yyyy-MM-dd"),
-                        description,
-                        priorityLevel,
-                        status,
-                        dbHelper.GetLastInsertedTaskId()
+                    // Add the new task to the ListView using SearchAndFilterService
+                    searchAndFilterService.AddTaskToListView(
+                        parentForm?.listView1,
+                        new TaskModel
+                        {
+                            TaskName = taskName,
+                            Category = category,
+                            Description = description,
+                            DueDate = dueDate,
+                            PriorityLevel = priorityLevel,
+                            Status = status,
+                            Id = dbHelper.GetLastInsertedTaskId()
+                        }
                     );
 
                     // Refresh the categories
@@ -257,13 +261,12 @@ namespace PROJ
             }
         }
 
-
         private void btnCancel_Click(object? sender, EventArgs e)
         {
-
             this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
+
         private void btnManageCategories_Click(object sender, EventArgs e)
         {
             // Open the category management form
@@ -285,6 +288,7 @@ namespace PROJ
                 }
             }
         }
+
         private List<string> LoadCategoriesFromFile()
         {
             if (File.Exists(CategoryFilePath))
@@ -293,10 +297,12 @@ namespace PROJ
             }
             return new List<string>();
         }
+
         private void SaveCategoriesToFile(List<string> categories)
         {
             File.WriteAllLines(CategoryFilePath, categories);
         }
+
         private void CmbPriorityLevel_DropDown(object sender, EventArgs e)
         {
             if (cmbPriorityLevel.Text == "Priority Level")
@@ -328,6 +334,7 @@ namespace PROJ
                 cmbStatus.Text = "Status"; // Reset placeholder if nothing is selected
             }
         }
+
         private void CmbCategory_DropDown(object sender, EventArgs e)
         {
             if (cmbCategory.Text == "Categories")
@@ -343,8 +350,5 @@ namespace PROJ
                 cmbCategory.Text = "Categories"; // Reset placeholder if nothing is selected
             }
         }
-
-
-
     }
 }
