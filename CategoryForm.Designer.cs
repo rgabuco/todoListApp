@@ -93,7 +93,7 @@
             Controls.Add(btnAddCategory);
             Name = "CategoryForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "CatgeroyForm";
+            Text = "Category Form";
             TopMost = true;
             ResumeLayout(false);
             PerformLayout();

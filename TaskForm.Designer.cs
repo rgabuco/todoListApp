@@ -124,7 +124,7 @@
             btnManageCategories.UseVisualStyleBackColor = true;
             btnManageCategories.Click += btnManageCategories_Click;
             // 
-            // Form2
+            // TaskForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -138,9 +138,9 @@
             Controls.Add(btnAdd);
             Controls.Add(cmbCategory);
             Controls.Add(txtTaskName);
-            Name = "Form2";
+            Name = "TaskForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "New Task";
+            Text = "Task Form";
             ResumeLayout(false);
             PerformLayout();
         }
