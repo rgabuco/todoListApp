@@ -155,7 +155,7 @@
         private TextBox txtDescription;
         private Button btnCancel;
         private ComboBox cmbStatus;
-        private TextBox textBox1;
+        //private TextBox textBox1;
         private Button btnManageCategories;
     }
 }

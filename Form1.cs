@@ -19,7 +19,7 @@ namespace PROJ
         private DatabaseHelper dbHelper = new DatabaseHelper();
         private List<string> categories = new List<string>(); // Store category list
         private Panel weatherPanel = new Panel();
-        private bool isOffline = true; // Flag to indicate offline mode
+        private bool isOffline = false; // Flag to indicate offline mode
         private WeatherService weatherService;
         private SearchAndFilterService searchAndFilterService;
         private ExportFileService exportFileService = new ExportFileService();
