@@ -78,7 +78,7 @@ namespace PROJ
             cmbPriority.SelectedIndex = 0;
 
             // Populate cmbStatus with status levels
-            cmbStatus.Items.AddRange(new string[] { "All Statuses", "Starting", "In Progress", "Complete" });
+            cmbStatus.Items.AddRange(new string[] { "All Statuses", "Not Started", "In Progress", "Completed" });
             cmbStatus.SelectedIndex = 0;
 
             LoadCategories(); // Load categories from file

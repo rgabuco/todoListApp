@@ -71,7 +71,7 @@ namespace PROJ
 
             // Add items for Priority Level and Status
             cmbPriorityLevel.Items.AddRange(new string[] { "Low", "Medium", "High" });
-            cmbStatus.Items.AddRange(new string[] { "Starting", "In Progress", "Complete" });
+            cmbStatus.Items.AddRange(new string[] { "Not Started", "In Progress", "Completed" });
 
             // Set placeholder text
             cmbCategory.Text = "Categories";
@@ -249,6 +249,7 @@ namespace PROJ
                     );
 
                     // Refresh the categories
+                    parentForm?.RefreshListView();
                     parentForm?.UpdateCategoryDropdown();
                 }
 
