@@ -17,56 +17,62 @@ namespace PROJ.Services
 
         public void FilterTasksByCategory(ListView listView, string selectedCategory)
         {
-            listView.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-            var filteredTasks = tasks.Where(task =>
-                selectedCategory == "All Categories" ||
-                task.Category.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
-
-            foreach (var task in filteredTasks)
+            var allItems = listView.Tag as List<ListViewItem>;
+            if (allItems == null)
             {
-                AddTaskToListView(listView, task);
+                allItems = listView.Items.Cast<ListViewItem>().ToList();
+                listView.Tag = allItems;
             }
 
-            StoreCurrentItems(listView); // Store the filtered items
+            var filteredItems = allItems.Where(item =>
+                selectedCategory == "All Categories" ||
+                item.SubItems[1].Text.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            listView.BeginUpdate();
+            listView.Items.Clear();
+            listView.Items.AddRange(filteredItems.ToArray());
+            listView.EndUpdate();
         }
 
         public void FilterTasksByPriority(ListView listView, string selectedPriority)
         {
-            listView.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-            var filteredTasks = tasks.Where(task =>
-                selectedPriority == "All Priorities" ||
-                task.PriorityLevel.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
-
-            foreach (var task in filteredTasks)
+            var allItems = listView.Tag as List<ListViewItem>;
+            if (allItems == null)
             {
-                AddTaskToListView(listView, task);
+                allItems = listView.Items.Cast<ListViewItem>().ToList();
+                listView.Tag = allItems;
             }
 
-            StoreCurrentItems(listView); // Store the filtered items
+            var filteredItems = allItems.Where(item =>
+                selectedPriority == "All Priorities" ||
+                item.SubItems[4].Text.Equals(selectedPriority, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            listView.BeginUpdate();
+            listView.Items.Clear();
+            listView.Items.AddRange(filteredItems.ToArray());
+            listView.EndUpdate();
         }
 
         public void FilterTasksByStatus(ListView listView, string selectedStatus)
         {
-            listView.Items.Clear();
-
-            var tasks = dbHelper.GetTasks();
-            var filteredTasks = tasks.Where(task =>
-                selectedStatus == "All Statuses" ||
-                task.Status.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
-
-            foreach (var task in filteredTasks)
+            var allItems = listView.Tag as List<ListViewItem>;
+            if (allItems == null)
             {
-                AddTaskToListView(listView, task);
+                allItems = listView.Items.Cast<ListViewItem>().ToList();
+                listView.Tag = allItems;
             }
 
-            StoreCurrentItems(listView); // Store the filtered items
+            var filteredItems = allItems.Where(item =>
+                selectedStatus == "All Statuses" ||
+                item.SubItems[5].Text.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            listView.BeginUpdate();
+            listView.Items.Clear();
+            listView.Items.AddRange(filteredItems.ToArray());
+            listView.EndUpdate();
         }
 
         public void SearchTasks(ListView listView, string query)
@@ -116,4 +122,3 @@ namespace PROJ.Services
         }
     }
 }
-

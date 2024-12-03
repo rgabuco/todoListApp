@@ -43,6 +43,11 @@ namespace PROJ
             textBox1.GotFocus += RemovePlaceholderText;
             textBox1.GotFocus += (s, e) => searchAndFilterService.ClearStoredItems(listView1); // Clear stored items when TextBox gets focus
             textBox1.LostFocus += SetPlaceholderText;
+
+            // Store current items when ComboBox loses focus
+            cmbCategory.LostFocus += (s, e) => searchAndFilterService.StoreCurrentItems(listView1);
+            cmbPriority.LostFocus += (s, e) => searchAndFilterService.StoreCurrentItems(listView1);
+            cmbStatus.LostFocus += (s, e) => searchAndFilterService.StoreCurrentItems(listView1);
         }
 
         private void InitializeWeatherPanel()
@@ -423,4 +428,3 @@ namespace PROJ
         }
     }
 }
-
